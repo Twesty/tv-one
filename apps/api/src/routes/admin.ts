@@ -130,19 +130,17 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     const id = parseId(venueId);
     if (!id) return reply.code(400).send({ error: 'INVALID_VENUE_ID' });
 
+    // Deactivation preserves media and assignment history for audit/recovery.
     const { data, error } = await supabaseAdmin
       .from('venues')
-      .delete()
+      .update({ is_active: false })
       .eq('id', id)
       .select('id')
       .maybeSingle();
 
     if (error) {
-      app.log.error({ err: error }, 'Venue deletion failed');
-      return reply.code(409).send({
-        error: 'VENUE_DELETE_FAILED',
-        message: 'The venue could not be deleted. Check dependent media and assignments.'
-      });
+      app.log.error({ err: error }, 'Venue deactivation failed');
+      return reply.code(500).send({ error: 'VENUE_DEACTIVATE_FAILED' });
     }
     if (!data) return reply.code(404).send({ error: 'VENUE_NOT_FOUND' });
 
