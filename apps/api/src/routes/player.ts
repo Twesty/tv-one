@@ -71,7 +71,14 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
 
   app.post('/config', {
     config: {
-      rateLimit: { max: 10, timeWindow: '1 minute' }
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 minute',
+        keyGenerator: (request) => {
+          const parsed = credentialSchema.safeParse(request.body);
+          return parsed.success ? `device:${parsed.data.deviceId}` : request.ip;
+        }
+      }
     }
   }, async (request, reply) => {
     const parsed = credentialSchema.safeParse(request.body);
