@@ -23,6 +23,8 @@ export class AppComponent {
   readonly error = signal('');
   readonly notice = signal('');
   readonly pairingSecret = signal('');
+  readonly selectedDeviceIds = signal<string[]>([]);
+  selectedMediaId = '';
 
   email = '';
   password = '';
@@ -102,6 +104,25 @@ export class AppComponent {
     });
   }
 
+  toggleDevice(deviceId: string, checked: boolean): void {
+    this.selectedDeviceIds.update((ids) =>
+      checked ? [...new Set([...ids, deviceId])] : ids.filter((id) => id !== deviceId)
+    );
+  }
+
+  async assignSelectedMedia(): Promise<void> {
+    const venueId = this.selectedVenueId();
+    const mediaId = this.selectedMediaId;
+    const deviceIds = this.selectedDeviceIds();
+    if (!venueId || !mediaId || !deviceIds.length) return;
+    this.run(async () => {
+      await this.api.assignMediaToDevices(venueId, deviceIds, mediaId);
+      this.selectedDeviceIds.set([]);
+      await this.loadVenueData(venueId);
+      this.notice.set(`Контент назначен на ${deviceIds.length} устройств.`);
+    });
+  }
+
   async revokeDevice(device: Device): Promise<void> {
     const venueId = this.selectedVenueId();
     if (!venueId || !window.confirm(`Отозвать доступ устройства «${device.name}»?`)) return;
@@ -144,6 +165,10 @@ export class AppComponent {
     ]);
     this.devices.set(devices);
     this.media.set(media);
+    this.selectedDeviceIds.update((ids) => ids.filter((id) => devices.some((device) => device.id === id && device.status === 'active')));
+    if (!this.selectedMediaId || !media.some((asset) => asset.id === this.selectedMediaId && asset.status === 'ready')) {
+      this.selectedMediaId = media.find((asset) => asset.status === 'ready')?.id ?? '';
+    }
   }
 
   private run(action: () => Promise<unknown>): void {
