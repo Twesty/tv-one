@@ -38,7 +38,10 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.post('/venues/:venueId/media', {
-    bodyLimit: MAX_MEDIA_BYTES + 1024 * 1024
+    bodyLimit: MAX_MEDIA_BYTES + 1024 * 1024,
+    config: {
+      rateLimit: { max: 20, timeWindow: '1 hour' }
+    }
   }, async (request, reply) => {
     const { venueId } = request.params as { venueId: string };
     const parsedId = z.string().uuid().safeParse(venueId);
