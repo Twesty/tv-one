@@ -68,3 +68,5 @@ footer { border-top:1px solid var(--line); padding:18px 42px; color:#92958d; fon
 .device-pick input { width:14px; height:14px; padding:0; accent-color:#171816; }
 
 .text-action { border:0; background:none; color:#50554a; font-size:10px; }
+
+.danger-outline { color:var(--danger); border-color:#e8c8c4; }
