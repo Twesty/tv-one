@@ -44,6 +44,7 @@
         <div class="page-heading"><div><p class="eyebrow">MANAGEMENT / 01</p><h1>{{ section() === 'overview' ? 'Панель управления' : section() === 'devices' ? 'Устройства' : 'Медиатека' }}</h1><p class="muted">Управление рекламным контентом и экранами заведений.</p></div><span class="count-tag">{{ venues().length }} VENUES</span></div>
         <section class="venue-toolbar">
           <label class="venue-select">ТЕКУЩЕЕ ЗАВЕДЕНИЕ<select [ngModel]="selectedVenueId()" (ngModelChange)="selectVenue($event)"><option value="">Выберите заведение</option>@for (venue of venues(); track venue.id) { <option [value]="venue.id">{{ venue.name }}</option> }</select></label>
+          @if (selectedVenue()) { <button class="secondary" (click)="renameVenue()" [disabled]="busy()">Изменить название</button><button class="secondary danger-outline" (click)="deactivateVenue()" [disabled]="busy()">Деактивировать</button> }
           <button class="secondary" (click)="loadVenues()" [disabled]="busy()">↻ Обновить</button>
         </section>
         @if (section() === 'overview') {
