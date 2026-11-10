@@ -26,6 +26,7 @@
       <span>{{ deviceName() || 'TV ONE PLAYER' }}</span>
       <span class="connection" [class.offline]="offline()"><i></i>{{ offline() ? 'OFFLINE' : 'CONNECTED' }}</span>
     </div>
+    <button class="fullscreen-button" (click)="toggleFullscreen()" aria-label="Полноэкранный режим">⛶</button>
     <button class="setup-button" (click)="resetPairing()" aria-label="Настройки устройства">⚙</button>
   </main>
 }
