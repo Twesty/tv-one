@@ -1,0 +1,4 @@
+* { box-sizing:border-box; }
+html,body { width:100%; min-height:100%; margin:0; background:#050605; font-family:Arial,Helvetica,sans-serif; }
+body { min-width:320px; }
+button,input,select { font:inherit; }
