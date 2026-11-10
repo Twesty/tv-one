@@ -91,7 +91,7 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const detected = await fileTypeFromBuffer(buffer);
-    const accepted = detected ? allowedTypes.get(detected.mime as keyof typeof allowedTypes) : undefined;
+    const accepted = detected ? allowedTypes.get(detected.mime) : undefined;
 
     if (!detected || !accepted) {
       return reply.code(415).send({
@@ -115,7 +115,7 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
     }
 
     const originalName = part.filename
-      .replace(/[\\/\\u0000-\\u001f]/g, '_')
+      .replace(/[\/\\\x00-\x1f]/g, '_')
       .slice(0, 255) || `media.${accepted.extension}`;
 
     const { data, error: insertError } = await supabaseAdmin
