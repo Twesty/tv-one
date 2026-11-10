@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { resolve } from 'node:path';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -60,6 +60,14 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   const adminRoot = resolve(process.cwd(), '../admin/dist/admin/browser');
   const playerRoot = resolve(process.cwd(), '../player/dist/player/browser');
+
+  // Fail startup rather than silently serving an API without its browser apps.
+  await Promise.all([
+    access(resolve(adminRoot, 'index.html')),
+    access(resolve(playerRoot, 'index.html')),
+    access(resolve(adminRoot, 'assets/runtime-config.js')),
+    access(resolve(playerRoot, 'assets/runtime-config.js'))
+  ]);
 
   await app.register(fastifyStatic, {
     root: adminRoot,
