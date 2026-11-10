@@ -12,7 +12,7 @@ The API validates the token with Supabase Auth and checks `admin_profiles.role =
 - `POST /api/admin/venues` — `{ name, description?, isActive? }`
 - `GET /api/admin/venues/:venueId`
 - `PATCH /api/admin/venues/:venueId`
-- `DELETE /api/admin/venues/:venueId`
+- `DELETE /api/admin/venues/:venueId` — deactivates the venue without deleting its media or assignment history.
 
 ## Devices
 
