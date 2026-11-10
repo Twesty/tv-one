@@ -7,7 +7,6 @@ interface SavedPairing { venueId: string; deviceId: string; pairingSecret: strin
 
 @Component({
   selector: 'tv-root',
-  standalone: true,
   imports: [FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
