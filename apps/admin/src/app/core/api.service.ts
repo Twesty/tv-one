@@ -90,6 +90,18 @@ export class ApiService {
     return response.data;
   }
 
+  async assignMediaToDevices(
+    venueId: string,
+    deviceIds: string[],
+    mediaAssetId: string,
+    imageDurationMs = 10000
+  ): Promise<void> {
+    await firstValueFrom(this.http.put(
+      `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}/assignments`,
+      { deviceIds, mediaAssetId, imageDurationMs }
+    ));
+  }
+
   async uploadMedia(venueId: string, file: File): Promise<MediaAsset> {
     const formData = new FormData();
     formData.append('file', file);
