@@ -37,7 +37,9 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
     return { data };
   });
 
-  app.post('/venues/:venueId/media', async (request, reply) => {
+  app.post('/venues/:venueId/media', {
+    bodyLimit: MAX_MEDIA_BYTES + 1024 * 1024
+  }, async (request, reply) => {
     const { venueId } = request.params as { venueId: string };
     const parsedId = z.string().uuid().safeParse(venueId);
     if (!parsedId.success) {
