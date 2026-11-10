@@ -8,8 +8,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   CORS_ALLOWED_ORIGINS: z.string().min(1),
   PUBLIC_API_URL: z.string().url(),
-  ADMIN_APP_URL: z.string().url(),
-  PLAYER_APP_URL: z.string().url()
+  ADMIN_APP_URL: z.string().url().optional(),
+  PLAYER_APP_URL: z.string().url().optional()
 });
 
 const parsed = envSchema.safeParse(process.env);
