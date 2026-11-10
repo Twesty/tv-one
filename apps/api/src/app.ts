@@ -9,7 +9,6 @@ import multipart from '@fastify/multipart';
 import { env } from './config/env.js';
 import { supabaseAdmin } from './config/supabase.js';
 import { registerRoutes } from './routes/index.js';
-import { writeBrowserRuntimeConfig } from './config/runtime-config.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -58,8 +57,6 @@ export async function buildApp(): Promise<FastifyInstance> {
     max: 120,
     timeWindow: '1 minute'
   });
-
-  await writeBrowserRuntimeConfig();
 
   const adminRoot = resolve(process.cwd(), '../admin/dist/admin/browser');
   const playerRoot = resolve(process.cwd(), '../player/dist/player/browser');
