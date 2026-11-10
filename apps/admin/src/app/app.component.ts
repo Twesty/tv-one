@@ -6,7 +6,6 @@ import { ApiService, Device, MediaAsset, Venue } from './core/api.service';
 
 @Component({
   selector: 'tv-root',
-  standalone: true,
   imports: [FormsModule, DatePipe, DecimalPipe],
   templateUrl: './app.component.html'
 })
