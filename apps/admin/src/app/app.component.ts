@@ -46,7 +46,6 @@ export class AppComponent {
   async signIn(): Promise<void> {
     this.run(async () => {
       await this.auth.signIn(this.email, this.password);
-      await this.loadVenues();
     });
   }
 
