@@ -75,6 +75,13 @@ export class ApiService {
     return response.data;
   }
 
+  async renameDevice(venueId: string, deviceId: string, name: string): Promise<void> {
+    await firstValueFrom(this.http.patch(
+      `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}/devices/${encodeURIComponent(deviceId)}`,
+      { name }
+    ));
+  }
+
   async revokeDevice(venueId: string, deviceId: string): Promise<void> {
     await firstValueFrom(this.http.delete(
       `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}/devices/${encodeURIComponent(deviceId)}`
