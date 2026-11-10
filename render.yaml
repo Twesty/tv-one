@@ -2,7 +2,7 @@ services:
   - type: web
     name: tv-one
     runtime: node
-    buildCommand: corepack enable && pnpm install --no-frozen-lockfile && pnpm --filter @tv-one/admin build && pnpm --filter @tv-one/player build && pnpm --filter @tv-one/api build
+    buildCommand: corepack enable && node scripts/write-browser-config.mjs && pnpm install --no-frozen-lockfile && pnpm --filter @tv-one/admin build && pnpm --filter @tv-one/player build && pnpm --filter @tv-one/api build
     startCommand: pnpm --filter @tv-one/api start
     healthCheckPath: /health/ready
     envVars:
