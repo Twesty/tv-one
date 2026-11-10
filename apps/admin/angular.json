@@ -14,10 +14,17 @@
             "outputPath": "dist/admin",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "assets": ["src/assets"],
-            "styles": ["src/styles.css"]
+            "assets": [
+              "src/assets"
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "baseHref": "/admin/"
           },
           "configurations": {
             "production": {
@@ -25,7 +32,11 @@
               "outputHashing": "all",
               "sourceMap": false,
               "budgets": [
-                { "type": "initial", "maximumWarning": "700kb", "maximumError": "1mb" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "700kb",
+                  "maximumError": "1mb"
+                }
               ]
             }
           },
