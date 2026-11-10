@@ -84,14 +84,38 @@ export async function buildApp(): Promise<FastifyInstance> {
     prefix: '/player/',
     wildcard: false,
     decorateReply: false,
-    maxAge: '1h'
+    maxAge: '1y',
+    setHeaders(response, filePath) {
+      if (filePath.endsWith('index.html') || filePath.endsWith('runtime-config.js')) {
+        response.setHeader('Cache-Control', 'no-store');
+      } else {
+        response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
   });
 
   app.get('/', async (_request, reply) => reply.redirect('/admin/'));
   app.get('/admin', async (_request, reply) => reply.redirect('/admin/'));
   app.get('/player', async (_request, reply) => reply.redirect('/player/'));
-  app.get('/admin/*', async (_request, reply) => reply.type('text/html').send(await readFile(resolve(adminRoot, 'index.html'))));
-  app.get('/player/*', async (_request, reply) => reply.type('text/html').send(await readFile(resolve(playerRoot, 'index.html'))));
+  app.get('/admin/*', async (request, reply) => {
+    if (request.url.split('?')[0].includes('.')) {
+      return reply.code(404).send({ error: 'NOT_FOUND' });
+    }
+    return reply
+      .header('Cache-Control', 'no-store')
+      .type('text/html')
+      .send(await readFile(resolve(adminRoot, 'index.html')));
+  });
+
+  app.get('/player/*', async (request, reply) => {
+    if (request.url.split('?')[0].includes('.')) {
+      return reply.code(404).send({ error: 'NOT_FOUND' });
+    }
+    return reply
+      .header('Cache-Control', 'no-store')
+      .type('text/html')
+      .send(await readFile(resolve(playerRoot, 'index.html')));
+  });
 
 
   app.get('/health/live', async () => ({
