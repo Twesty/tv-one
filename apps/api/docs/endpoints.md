@@ -18,6 +18,7 @@ The API validates the token with Supabase Auth and checks `admin_profiles.role =
 
 - `GET /api/admin/venues/:venueId/devices`
 - `POST /api/admin/venues/:venueId/devices` — `{ name }`; returns the pairing secret once.
+- `PATCH /api/admin/venues/:venueId/devices/:deviceId` — update the display name.
 - `DELETE /api/admin/venues/:venueId/devices/:deviceId` — revokes the device credential.
 
 ## Media library
