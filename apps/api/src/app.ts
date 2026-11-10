@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -26,32 +27,6 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.decorateRequest('adminUser', null);
 
-  await writeBrowserRuntimeConfig();
-
-  const adminRoot = resolve(process.cwd(), '../admin/dist/admin/browser');
-  const playerRoot = resolve(process.cwd(), '../player/dist/player/browser');
-
-  await app.register(fastifyStatic, {
-    root: adminRoot,
-    prefix: '/admin/',
-    wildcard: false,
-    decorateReply: false,
-    maxAge: '1h'
-  });
-
-  await app.register(fastifyStatic, {
-    root: playerRoot,
-    prefix: '/player/',
-    wildcard: false,
-    decorateReply: false,
-    maxAge: '1h'
-  });
-
-  app.get('/', async (_request, reply) => reply.redirect('/admin/'));
-  app.get('/admin', async (_request, reply) => reply.redirect('/admin/'));
-  app.get('/player', async (_request, reply) => reply.redirect('/player/'));
-  app.get('/admin/*', async (_request, reply) => reply.sendFile('index.html'));
-  app.get('/player/*', async (_request, reply) => reply.sendFile('index.html'));
 
   await app.register(helmet, {
     contentSecurityPolicy: false
@@ -83,6 +58,34 @@ export async function buildApp(): Promise<FastifyInstance> {
     max: 120,
     timeWindow: '1 minute'
   });
+
+  await writeBrowserRuntimeConfig();
+
+  const adminRoot = resolve(process.cwd(), '../admin/dist/admin/browser');
+  const playerRoot = resolve(process.cwd(), '../player/dist/player/browser');
+
+  await app.register(fastifyStatic, {
+    root: adminRoot,
+    prefix: '/admin/',
+    wildcard: false,
+    decorateReply: false,
+    maxAge: '1h'
+  });
+
+  await app.register(fastifyStatic, {
+    root: playerRoot,
+    prefix: '/player/',
+    wildcard: false,
+    decorateReply: false,
+    maxAge: '1h'
+  });
+
+  app.get('/', async (_request, reply) => reply.redirect('/admin/'));
+  app.get('/admin', async (_request, reply) => reply.redirect('/admin/'));
+  app.get('/player', async (_request, reply) => reply.redirect('/player/'));
+  app.get('/admin/*', async (_request, reply) => reply.type('text/html').send(await readFile(resolve(adminRoot, 'index.html'))));
+  app.get('/player/*', async (_request, reply) => reply.type('text/html').send(await readFile(resolve(playerRoot, 'index.html'))));
+
 
   app.get('/health/live', async () => ({
     status: 'ok',
