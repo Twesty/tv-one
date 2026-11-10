@@ -41,3 +41,13 @@ Use the bulk endpoint when several TVs must start the same media together. The d
 - `GET /health/ready`
 
 No endpoint should be considered production-verified until the GitHub Actions checks and live Supabase integration tests pass.
+
+## Public TV player
+
+- `GET /api/player/venues` — active venue directory.
+- `GET /api/player/venues/:venueId/devices` — active display directory for a venue.
+- `POST /api/player/config` — request the current player configuration using `{ deviceId, pairingSecret }`.
+
+The pairing secret is generated when an administrator creates a device and is returned only once. Store it locally on the TV device; do not put it in a URL. The player configuration endpoint checks the secret hash and device status on every request. Revoking a device immediately prevents further configuration requests.
+
+The response contains the current assignment revision, server timestamp, schedule anchor, and a time-limited signed URL for the private media object. Signed URLs expire after one hour; the player must refresh its configuration before expiry and after reconnecting.
