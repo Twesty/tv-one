@@ -56,6 +56,22 @@ export class ApiService {
     return response.data;
   }
 
+  async updateVenue(venueId: string, payload: { name?: string; description?: string | null; isActive?: boolean }): Promise<Venue> {
+    const response = await firstValueFrom(
+      this.http.patch<{ data: Venue }>(
+        `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}`,
+        payload
+      )
+    );
+    return response.data;
+  }
+
+  async deactivateVenue(venueId: string): Promise<void> {
+    await firstValueFrom(this.http.delete(
+      `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}`
+    ));
+  }
+
   async devices(venueId: string): Promise<Device[]> {
     const response = await firstValueFrom(
       this.http.get<{ data: Device[] }>(
