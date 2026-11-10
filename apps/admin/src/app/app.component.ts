@@ -70,6 +70,13 @@ export class AppComponent {
   async selectVenue(id: string): Promise<void> {
     this.selectedVenueId.set(id);
     this.pairingSecret.set('');
+    if (!id) {
+      this.devices.set([]);
+      this.media.set([]);
+      this.selectedDeviceIds.set([]);
+      this.selectedMediaId = '';
+      return;
+    }
     await this.loadVenueData(id);
   }
 
