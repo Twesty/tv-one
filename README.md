@@ -7,7 +7,7 @@ Production-oriented platform for centrally managing and synchronously playing ad
 - `apps/admin` — Angular administration application.
 - `apps/player` — Angular TV playback application.
 - `apps/api` — Fastify API and static hosting for both Angular apps, deployed as one Render Web Service.
-- `packages/shared` — shared TypeScript contracts and validation schemas.
+- `packages/shared` — shared TypeScript DTO contracts.
 - `supabase/migrations` — database schema, policies, and database functions.
 
 ## Infrastructure
