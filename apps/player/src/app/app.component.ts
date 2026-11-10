@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { PlayerApiService, PlayerConfiguration, PlayerDevice, PlayerVenue } from './player-api.service';
 
@@ -14,7 +14,6 @@ interface SavedPairing { venueId: string; deviceId: string; pairingSecret: strin
 })
 export class AppComponent implements OnDestroy {
   private readonly api = inject(PlayerApiService);
-  private readonly http = inject(HttpClient);
   readonly venues = signal<PlayerVenue[]>([]);
   readonly devices = signal<PlayerDevice[]>([]);
   readonly selectedVenueId = signal('');
@@ -33,6 +32,7 @@ export class AppComponent implements OnDestroy {
   private lastStartedAt = '';
   private currentMediaId = '';
   private currentRevision = 0;
+  private mediaUrlExpiresAt = '';
   @ViewChild('videoElement') private videoElement?: ElementRef<HTMLVideoElement>;
   private refreshHandle: ReturnType<typeof setInterval> | null = null;
   private imageHandle: ReturnType<typeof setTimeout> | null = null;
@@ -191,7 +191,10 @@ export class AppComponent implements OnDestroy {
     if (this.currentMediaId === media.id && this.currentRevision === assignment.revision) {
       if (media.kind === 'video') this.syncVideoPosition();
       else this.scheduleImageRefresh(assignment.imageDurationMs);
-      if (!this.mediaUrl().startsWith('blob:')) this.mediaUrl.set(media.url);
+      if (!this.mediaUrl().startsWith('blob:') && Date.parse(this.mediaUrlExpiresAt) < Date.now() + 120000) {
+        this.mediaUrl.set(media.url);
+        this.mediaUrlExpiresAt = media.urlExpiresAt;
+      }
       this.message.set(this.offline() ? 'Автономное воспроизведение' : 'Воспроизведение');
       return;
     }
@@ -218,6 +221,7 @@ export class AppComponent implements OnDestroy {
       // Stream directly if persistent storage is unavailable; offline playback
       // cannot be promised until the browser has cached the complete file.
       this.mediaUrl.set(media.url);
+      this.mediaUrlExpiresAt = media.urlExpiresAt;
       this.mediaKind.set(media.kind);
     } else {
       this.message.set('Контент ещё не сохранён для автономного воспроизведения.');
@@ -257,11 +261,17 @@ export class AppComponent implements OnDestroy {
       this.setupRequired.set(false);
       await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
       this.startPolling();
-    } catch {
-      this.offline.set(true);
-      this.setupRequired.set(false);
-      await this.loadCachedAssignment();
-      this.startPolling();
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+        localStorage.removeItem(this.savedKey);
+        this.setupRequired.set(true);
+        await this.loadVenues();
+      } else {
+        this.offline.set(true);
+        this.setupRequired.set(false);
+        await this.loadCachedAssignment();
+        this.startPolling();
+      }
     } finally {
       this.loading.set(false);
     }
