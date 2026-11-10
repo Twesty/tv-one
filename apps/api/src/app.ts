@@ -98,7 +98,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.get('/admin', async (_request, reply) => reply.redirect('/admin/'));
   app.get('/player', async (_request, reply) => reply.redirect('/player/'));
   app.get('/admin/*', async (request, reply) => {
-    if (request.url.split('?')[0].includes('.')) {
+    if ((request.url.split('?')[0] ?? '').includes('.')) {
       return reply.code(404).send({ error: 'NOT_FOUND' });
     }
     return reply
