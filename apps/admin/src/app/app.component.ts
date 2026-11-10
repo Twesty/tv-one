@@ -145,6 +145,16 @@ export class AppComponent {
     });
   }
 
+  async deleteMedia(asset: MediaAsset): Promise<void> {
+    const venueId = this.selectedVenueId();
+    if (!venueId || !window.confirm(`Удалить файл «${asset.original_name}»?`)) return;
+    this.run(async () => {
+      await this.api.deleteMedia(venueId, asset.id);
+      await this.loadVenueData(venueId);
+      this.notice.set('Медиафайл удалён.');
+    });
+  }
+
   async uploadFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
