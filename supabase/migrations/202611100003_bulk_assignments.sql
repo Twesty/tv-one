@@ -20,7 +20,7 @@ begin
      or cardinality(p_device_ids) < 1
      or cardinality(p_device_ids) > 100
      or cardinality(p_device_ids) <> (
-       select count(distinct device_id) from unnest(p_device_ids) as device_id
+       select count(distinct value) from unnest(p_device_ids) as ids(value)
      ) then
     raise exception 'INVALID_DEVICE_LIST' using errcode = '22023';
   end if;
