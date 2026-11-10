@@ -1,0 +1,90 @@
+<main class="shell">
+  @if (auth.isLoading()) {
+    <section class="center-state"><span class="loader"></span><p>Загрузка сессии…</p></section>
+  } @else if (!auth.isAuthenticated()) {
+    <section class="login-wrap">
+      <div class="brand"><span class="brand-mark">TV</span><span>ONE / CONTROL</span></div>
+      <div class="login-card">
+        <p class="eyebrow">ADMINISTRATOR ACCESS</p>
+        <h1>Вход в систему</h1>
+        <p class="muted">Используйте учётную запись администратора Supabase.</p>
+        <form (ngSubmit)="signIn()">
+          <label>Email<input type="email" name="email" [(ngModel)]="email" autocomplete="username" required></label>
+          <label>Пароль<input type="password" name="password" [(ngModel)]="password" autocomplete="current-password" required></label>
+          <button class="primary full" type="submit" [disabled]="busy()">Войти <span>↗</span></button>
+        </form>
+        @if (error()) { <p class="alert error">{{ error() }}</p> }
+      </div>
+      <p class="footnote">TV ONE · DISPLAY NETWORK MANAGEMENT</p>
+    </section>
+  } @else {
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">TV</span><span>ONE / CONTROL</span></div>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item" [class.active]="section() === 'overview'" (click)="section.set('overview')"><span>▦</span> Обзор</button>
+      <button class="nav-item" [class.active]="section() === 'devices'" (click)="section.set('devices')"><span>▣</span> Устройства</button>
+      <button class="nav-item" [class.active]="section() === 'media'" (click)="section.set('media')"><span>▤</span> Медиатека</button>
+      <div class="sidebar-bottom">
+        <div class="account"><span class="avatar">{{ (auth.user()?.email ?? 'A').slice(0, 1).toUpperCase() }}</span><span><strong>Administrator</strong><small>{{ auth.user()?.email }}</small></span></div>
+        <button class="logout" (click)="signOut()">Выйти ↗</button>
+      </div>
+    </aside>
+    <section class="main-area">
+      <header class="topbar"><div><span class="crumb">TV ONE</span><span class="slash">/</span><strong>{{ section() === 'overview' ? 'Обзор' : section() === 'devices' ? 'Устройства' : 'Медиатека' }}</strong></div><span class="status"><i></i> API WORKSPACE</span></header>
+      <div class="content">
+        @if (error()) { <div class="alert error">{{ error() }}</div> }
+        @if (notice()) { <div class="alert success">{{ notice() }}</div> }
+        @if (pairingSecret()) {
+          <section class="secret-panel">
+            <div><p class="eyebrow">ONE-TIME DEVICE CREDENTIAL</p><strong>Секрет привязки устройства</strong><p>Скопируйте и сохраните его. После закрытия этого окна получить секрет повторно будет нельзя.</p><code>{{ pairingSecret() }}</code></div>
+            <button class="secondary" (click)="copySecret()">Копировать</button>
+            <button class="icon-button" aria-label="Закрыть" (click)="pairingSecret.set('')">×</button>
+          </section>
+        }
+        <div class="page-heading"><div><p class="eyebrow">MANAGEMENT / 01</p><h1>{{ section() === 'overview' ? 'Панель управления' : section() === 'devices' ? 'Устройства' : 'Медиатека' }}</h1><p class="muted">Управление рекламным контентом и экранами заведений.</p></div><span class="count-tag">{{ venues().length }} VENUES</span></div>
+        <section class="venue-toolbar">
+          <label class="venue-select">ТЕКУЩЕЕ ЗАВЕДЕНИЕ<select [ngModel]="selectedVenueId()" (ngModelChange)="selectVenue($event)"><option value="">Выберите заведение</option>@for (venue of venues(); track venue.id) { <option [value]="venue.id">{{ venue.name }}</option> }</select></label>
+          <button class="secondary" (click)="loadVenues()" [disabled]="busy()">↻ Обновить</button>
+        </section>
+        @if (section() === 'overview') {
+          <div class="stats-grid">
+            <article class="stat-card"><span>ЗАВЕДЕНИЯ</span><strong>{{ venues().length }}</strong><small>Активные записи</small></article>
+            <article class="stat-card"><span>УСТРОЙСТВА</span><strong>{{ devices().length }}</strong><small>В выбранном заведении</small></article>
+            <article class="stat-card"><span>МЕДИАФАЙЛЫ</span><strong>{{ media().length }}</strong><small>В библиотеке заведения</small></article>
+            <article class="stat-card dark"><span>СОСТОЯНИЕ</span><strong>{{ busy() ? '…' : 'READY' }}</strong><small>Административный интерфейс</small></article>
+          </div>
+          <div class="columns">
+            <section class="panel"><div class="panel-head"><div><p class="eyebrow">VENUE DIRECTORY</p><h2>Заведения</h2></div><span class="pill">{{ venues().length }} ITEMS</span></div>
+              @for (venue of venues(); track venue.id) {
+                <button class="venue-row" [class.chosen]="venue.id === selectedVenueId()" (click)="selectVenue(venue.id)"><span class="venue-symbol">⌂</span><span class="venue-info"><strong>{{ venue.name }}</strong><small>{{ venue.description || 'Описание не добавлено' }}</small></span><span class="row-arrow">↗</span></button>
+              } @empty { <p class="empty">Пока нет заведений. Создайте первое справа.</p> }
+            </section>
+            <section class="panel create-panel"><p class="eyebrow">NEW LOCATION</p><h2>Добавить заведение</h2><form (ngSubmit)="createVenue()"><label>Название<input name="venueName" [(ngModel)]="venueName" maxlength="120" placeholder="Например, Main Hall" required></label><label>Описание<textarea name="venueDescription" [(ngModel)]="venueDescription" maxlength="2000" rows="3" placeholder="Необязательно"></textarea></label><button class="primary" type="submit" [disabled]="busy()">Создать заведение ↗</button></form></section>
+          </div>
+        }
+        @if (section() === 'devices') {
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">DISPLAY NETWORK</p><h2>Экраны и телевизоры</h2></div><span class="pill">{{ devices().length }} DEVICES</span></div>
+            @if (selectedVenue()) {
+              <form class="inline-create" (ngSubmit)="createDevice()"><input name="deviceName" [(ngModel)]="deviceName" placeholder="Название, например TV-01" maxlength="80" required><button class="primary" type="submit" [disabled]="busy()">Добавить устройство ↗</button></form>
+              @for (device of devices(); track device.id) {
+                <div class="device-row"><span class="device-icon">▣</span><span class="device-info"><strong>{{ device.name }}</strong><small>{{ device.id }}</small></span><span class="device-status" [class.revoked]="device.status === 'revoked'">{{ device.status }}</span><span class="last-seen">{{ device.last_seen_at ? (device.last_seen_at | date:'short') : 'Не подключался' }}</span>@if (device.status === 'active') { <button class="text-danger" (click)="revokeDevice(device)">Отозвать</button> }</div>
+              } @empty { <p class="empty">Устройства ещё не добавлены.</p> }
+            } @else { <p class="empty">Сначала выберите заведение.</p> }
+          </section>
+        }
+        @if (section() === 'media') {
+          <section class="panel"><div class="panel-head"><div><p class="eyebrow">CONTENT LIBRARY</p><h2>Медиафайлы</h2></div><span class="pill">{{ media().length }} ASSETS</span></div>
+            @if (selectedVenue()) {
+              <label class="upload-zone"><span class="upload-icon">↑</span><strong>Загрузить изображение или видео</strong><small>JPEG, PNG, WebP, GIF, MP4, WebM, MOV · до 50 MiB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" (change)="uploadFile($event)" [disabled]="busy()"></label>
+              @for (asset of media(); track asset.id) {
+                <div class="media-row"><span class="media-icon">{{ asset.kind === 'video' ? '▶' : '▧' }}</span><span class="media-info"><strong>{{ asset.original_name }}</strong><small>{{ asset.mime_type }} · {{ (asset.size_bytes / 1048576) | number:'1.1-1' }} MiB</small></span><span class="device-status">{{ asset.status }}</span><span class="last-seen">{{ asset.created_at | date:'short' }}</span></div>
+              } @empty { <p class="empty">Медиатека пуста.</p> }
+            } @else { <p class="empty">Сначала выберите заведение.</p> }
+          </section>
+        }
+        @if (busy()) { <div class="busy-line"><span class="loader"></span> Выполняется запрос…</div> }
+      </div>
+      <footer>TV ONE <span>·</span> ADMINISTRATION <span class="footer-right">PRODUCTION WORKSPACE</span></footer>
+    </section>
+  }
+</main>
