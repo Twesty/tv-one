@@ -24,6 +24,20 @@ All service URLs and credentials are supplied through environment variables. No 
 
 See [docs/architecture.md](docs/architecture.md) and [docs/deployment.md](docs/deployment.md).
 
-## Project status
+## Implementation status
 
-Repository bootstrap and architecture foundation. Production functionality, integration tests, and deployment verification are tracked as implementation work; this repository must not be considered production-ready until those checks pass against the configured Supabase and Render projects.
+- [x] Repository and workspace foundation
+- [x] Initial Supabase schema, RLS defaults, private media bucket
+- [x] Fastify API foundation and production configuration validation
+- [x] Supabase administrator token and role verification
+- [x] Venue and device administration endpoints
+- [x] Media listing and signature-validated uploads (50 MiB limit)
+- [x] Single-device and bulk synchronized assignment endpoints
+- [x] Public player directory and device credential verification
+- [x] Database clock endpoint for playback synchronization
+- [ ] Angular admin application
+- [ ] Angular TV player, synchronized playback and offline cache
+- [ ] Realtime reconciliation and integration tests
+- [ ] Render/Supabase production deployment and smoke tests
+
+This is an active implementation, not yet a production-ready release. Do not deploy to real venues until the remaining items, CI checks, and live integration tests have passed.
