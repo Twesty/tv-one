@@ -2,6 +2,7 @@ import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@an
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { PlayerApiService, PlayerConfiguration, PlayerDevice, PlayerVenue } from './player-api.service';
+import { PlayerRealtimeService } from './player-realtime.service';
 
 interface SavedPairing { venueId: string; deviceId: string; pairingSecret: string; }
 
@@ -13,6 +14,7 @@ interface SavedPairing { venueId: string; deviceId: string; pairingSecret: strin
 })
 export class AppComponent implements OnDestroy {
   private readonly api = inject(PlayerApiService);
+  private readonly realtime = inject(PlayerRealtimeService);
   readonly venues = signal<PlayerVenue[]>([]);
   readonly devices = signal<PlayerDevice[]>([]);
   readonly selectedVenueId = signal('');
@@ -98,6 +100,7 @@ export class AppComponent implements OnDestroy {
       this.setupRequired.set(false);
       await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
       this.startPolling();
+      this.realtime.subscribe(deviceId, () => void this.refreshConfiguration());
     } catch (error) {
       this.message.set(error instanceof Error ? error.message : 'Не удалось привязать устройство.');
     } finally {
@@ -128,6 +131,7 @@ export class AppComponent implements OnDestroy {
   async resetPairing(): Promise<void> {
     localStorage.removeItem(this.savedKey);
     this.stopTimers();
+    this.realtime.unsubscribe();
     this.setupRequired.set(true);
     this.mediaUrl.set('');
     this.mediaKind.set(null);
@@ -260,6 +264,7 @@ export class AppComponent implements OnDestroy {
       this.setupRequired.set(false);
       await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
       this.startPolling();
+      this.realtime.subscribe(pairing.deviceId, () => void this.refreshConfiguration());
     } catch (error) {
       if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
         localStorage.removeItem(this.savedKey);
