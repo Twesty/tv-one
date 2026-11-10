@@ -15,13 +15,13 @@ A device assignment references a media asset and a playback revision. The API st
 
 For video playback, clients estimate server clock offset using an API time endpoint and calculate the expected media position from the shared anchor and duration. Clients seek toward that position within a bounded correction policy rather than independently starting the video on page load. Repeating media uses modulo duration. Images use a server-defined display interval and the same schedule anchor.
 
-Configuration changes are committed in PostgreSQL and broadcast through Supabase Realtime. Realtime is an acceleration path, not the source of truth: players re-fetch their configuration after reconnect and periodically reconcile their revision.
+Configuration changes are committed in PostgreSQL. The API then publishes a small Supabase Realtime Broadcast event to each affected public device topic (`device:<uuid>`); the event contains only the device identifier and no credential, signed URL, or media metadata. A player treats the event as an invalidation hint and re-fetches its configuration through the credential-protected player API. Realtime is an acceleration path, not the source of truth: players also poll every 20 seconds and reconcile after reconnect.
 
 ## Offline behavior
 
 The player downloads assigned media into browser-managed persistent storage (IndexedDB metadata plus Cache API/Blob storage where supported), verifies size and content metadata, and only marks an asset available after a complete download. It continues the last known assignment while offline. On reconnect it refreshes credentials/configuration and reconciles the latest revision.
 
-Browser storage is best-effort and can be evicted by the operating system or browser. The UI must expose cache status and recover by downloading the asset again when connectivity returns. A web application cannot guarantee playback after the browser clears its storage or the device loses power.
+Browser storage is best-effort and can be evicted by the operating system or browser. The player caches the application shell with Angular Service Worker and media files in Cache API; it only replaces the last-known offline assignment after the new media has been completely downloaded and persisted. If a new asset cannot be cached, the last offline copy is preserved. A web application cannot guarantee playback after the browser clears its storage or the device loses power.
 
 ## Security boundaries
 
