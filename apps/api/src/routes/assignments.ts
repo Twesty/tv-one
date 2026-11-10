@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
+import { publishAssignmentUpdates } from '../realtime/assignment-broadcast.js';
 
 const assignmentSchema = z.object({
   mediaAssetId: z.string().uuid(),
@@ -47,6 +48,7 @@ export async function registerAssignmentRoutes(app: FastifyInstance): Promise<vo
       return reply.code(500).send({ error: 'ASSIGNMENT_FAILED' });
     }
 
+    await publishAssignmentUpdates([parsedId.data]);
     return { data };
   });
 
@@ -69,6 +71,7 @@ export async function registerAssignmentRoutes(app: FastifyInstance): Promise<vo
       return reply.code(500).send({ error: 'ASSIGNMENT_REMOVE_FAILED' });
     }
     if (!data) return reply.code(404).send({ error: 'ASSIGNMENT_NOT_FOUND' });
+    await publishAssignmentUpdates([parsedId.data]);
 
     return reply.code(204).send();
   });
