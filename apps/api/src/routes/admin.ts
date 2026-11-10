@@ -19,6 +19,8 @@ const deviceCreateSchema = z.object({
   name: z.string().trim().min(1).max(80)
 }).strict();
 
+const deviceUpdateSchema = deviceCreateSchema;
+
 function parseId(value: string): string | null {
   const parsed = idSchema.safeParse(value);
   return parsed.success ? parsed.data : null;
@@ -216,6 +218,42 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
         pairingSecret
       }
     });
+  });
+
+  app.patch('/venues/:venueId/devices/:deviceId', async (request, reply) => {
+    const { venueId, deviceId } = request.params as {
+      venueId: string;
+      deviceId: string;
+    };
+    const venue = parseId(venueId);
+    const device = parseId(deviceId);
+    if (!venue || !device) {
+      return reply.code(400).send({ error: 'INVALID_RESOURCE_ID' });
+    }
+
+    const parsed = deviceUpdateSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: 'VALIDATION_ERROR',
+        details: parsed.error.flatten()
+      });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('devices')
+      .update({ name: parsed.data.name })
+      .eq('id', device)
+      .eq('venue_id', venue)
+      .select('id, venue_id, name, status, last_seen_at, created_at, updated_at')
+      .maybeSingle();
+
+    if (error) {
+      app.log.error({ err: error }, 'Device update failed');
+      return reply.code(500).send({ error: 'DEVICE_UPDATE_FAILED' });
+    }
+    if (!data) return reply.code(404).send({ error: 'DEVICE_NOT_FOUND' });
+
+    return { data };
   });
 
   app.delete('/venues/:venueId/devices/:deviceId', async (request, reply) => {
