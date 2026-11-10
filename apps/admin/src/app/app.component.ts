@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/auth.service';
-import { ApiService, Device, MediaAsset, Venue } from './core/api.service';
+import { ApiService, type Device, type MediaAsset, type Venue } from './core/api.service';
 
 @Component({
   selector: 'tv-root',
