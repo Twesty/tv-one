@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: tv-one
+    runtime: node
+    buildCommand: corepack enable && pnpm install --no-frozen-lockfile && pnpm --filter @tv-one/admin build && pnpm --filter @tv-one/player build && pnpm --filter @tv-one/api build
+    startCommand: pnpm --filter @tv-one/api start
+    healthCheckPath: /health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
