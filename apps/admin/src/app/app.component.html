@@ -83,7 +83,7 @@
             @if (selectedVenue()) {
               <label class="upload-zone"><span class="upload-icon">↑</span><strong>Загрузить изображение или видео</strong><small>JPEG, PNG, WebP, GIF, MP4, WebM, MOV · до 50 MiB</small><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime" (change)="uploadFile($event)" [disabled]="busy()"></label>
               @for (asset of media(); track asset.id) {
-                <div class="media-row"><span class="media-icon">{{ asset.kind === 'video' ? '▶' : '▧' }}</span><span class="media-info"><strong>{{ asset.original_name }}</strong><small>{{ asset.mime_type }} · {{ (asset.size_bytes / 1048576) | number:'1.1-1' }} MiB</small></span><span class="device-status">{{ asset.status }}</span><span class="last-seen">{{ asset.created_at | date:'short' }}</span></div>
+                <div class="media-row"><span class="media-icon">{{ asset.kind === 'video' ? '▶' : '▧' }}</span><span class="media-info"><strong>{{ asset.original_name }}</strong><small>{{ asset.mime_type }} · {{ (asset.size_bytes / 1048576) | number:'1.1-1' }} MiB</small></span><span class="device-status">{{ asset.status }}</span><span class="last-seen">{{ asset.created_at | date:'short' }}</span><button class="text-danger" (click)="deleteMedia(asset)">Удалить</button></div>
               } @empty { <p class="empty">Медиатека пуста.</p> }
             } @else { <p class="empty">Сначала выберите заведение.</p> }
           </section>
