@@ -40,6 +40,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/deployment.md](docs/d
 - [x] Supabase Realtime assignment broadcasts with polling fallback
 - [ ] End-to-end tests for synchronization, cache eviction, and reconnect behavior
 - [ ] Realtime permissions and production channel verification
+- [x] Single-service Render Blueprint and build-time public runtime configuration
 - [ ] Render/Supabase production deployment and smoke tests
 
 This is an active implementation, not yet a production-ready release. Do not deploy to real venues until the remaining items, CI checks, and live integration tests have passed.
