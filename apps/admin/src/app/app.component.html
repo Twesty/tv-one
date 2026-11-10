@@ -69,7 +69,7 @@
               <div class="assignment-box">
                 <div><p class="eyebrow">SYNCHRONIZED PLAYBACK</p><strong>Назначить контент нескольким экранам</strong><p class="muted">Все выбранные устройства получат одну серверную временную отметку.</p></div>
                 <label>Медиафайл<select name="selectedMediaId" [(ngModel)]="selectedMediaId"><option value="">Выберите готовый файл</option>@for (asset of media(); track asset.id) { @if (asset.status === 'ready') { <option [value]="asset.id">{{ asset.original_name }}</option> } }</select></label>
-                <div class="device-pick-list">@for (device of devices(); track device.id) { @if (device.status === 'active') { <label class="device-pick"><input type="checkbox" [checked]="selectedDeviceIds().includes(device.id)" (change)="toggleDevice(device.id, $any($event.target).checked)"><span>{{ device.name }}</span></label> } }</div>
+                <div class="device-pick-list">@for (device of devices(); track device.id) { @if (device.status === 'active') { <label class="device-pick"><input type="checkbox" [checked]="selectedDeviceIds().includes(device.id)" (change)="onDeviceToggle(device.id, $event)"><span>{{ device.name }}</span></label> } }</div>
                 <button class="primary" type="button" (click)="assignSelectedMedia()" [disabled]="busy() || !selectedMediaId || !selectedDeviceIds().length">Назначить на {{ selectedDeviceIds().length }} экранов ↗</button>
               </div>
               @for (device of devices(); track device.id) {
