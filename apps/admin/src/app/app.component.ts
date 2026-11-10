@@ -123,6 +123,18 @@ export class AppComponent {
     });
   }
 
+  async renameDevice(device: Device): Promise<void> {
+    const venueId = this.selectedVenueId();
+    if (!venueId) return;
+    const name = window.prompt('Новое название устройства', device.name)?.trim();
+    if (!name || name === device.name) return;
+    this.run(async () => {
+      await this.api.renameDevice(venueId, device.id, name);
+      await this.loadVenueData(venueId);
+      this.notice.set('Название устройства обновлено.');
+    });
+  }
+
   async revokeDevice(device: Device): Promise<void> {
     const venueId = this.selectedVenueId();
     if (!venueId || !window.confirm(`Отозвать доступ устройства «${device.name}»?`)) return;
