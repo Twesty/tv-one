@@ -1,5 +1,5 @@
-import { Component, OnDestroy, inject, signal } from '@angular/core';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { PlayerApiService, PlayerConfiguration, PlayerDevice, PlayerVenue } from './player-api.service';
 
@@ -30,6 +30,10 @@ export class AppComponent implements OnDestroy {
   readonly revision = signal(0);
   readonly deviceName = signal('');
   private serverOffsetMs = 0;
+  private lastStartedAt = '';
+  private currentMediaId = '';
+  private currentRevision = 0;
+  @ViewChild('videoElement') private videoElement?: ElementRef<HTMLVideoElement>;
   private refreshHandle: ReturnType<typeof setInterval> | null = null;
   private imageHandle: ReturnType<typeof setTimeout> | null = null;
   private readonly cacheName = 'tv-one-media-v1';
@@ -87,11 +91,13 @@ export class AppComponent implements OnDestroy {
 
     this.loading.set(true);
     try {
+      const requestStartedAt = Date.now();
       const config = await this.api.configuration(deviceId, secret);
+      const responseReceivedAt = Date.now();
       const pairing: SavedPairing = { venueId, deviceId, pairingSecret: secret };
       localStorage.setItem(this.savedKey, JSON.stringify(pairing));
       this.setupRequired.set(false);
-      await this.applyConfiguration(config);
+      await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
       this.startPolling();
     } catch (error) {
       this.message.set(error instanceof Error ? error.message : 'Не удалось привязать устройство.');
@@ -104,9 +110,16 @@ export class AppComponent implements OnDestroy {
     const pairing = this.readPairing();
     if (!pairing || !navigator.onLine) return;
     try {
+      const requestStartedAt = Date.now();
       const config = await this.api.configuration(pairing.deviceId, pairing.pairingSecret);
-      await this.applyConfiguration(config);
-    } catch {
+      const responseReceivedAt = Date.now();
+      await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+        await this.resetPairing();
+        this.message.set('Доступ устройства отозван или привязка недействительна.');
+        return;
+      }
       this.offline.set(true);
       this.message.set('Нет связи с сервером. Используется последняя сохранённая версия.');
       await this.loadCachedAssignment();
@@ -127,9 +140,8 @@ export class AppComponent implements OnDestroy {
       ? video.duration
       : 0;
     if (!duration) return;
-    const config = this.lastConfiguration;
-    if (!config?.assignment) return;
-    const elapsed = Math.max(0, Date.now() + this.serverOffsetMs - Date.parse(config.assignment.startedAt));
+    if (!this.lastStartedAt) return;
+    const elapsed = Math.max(0, Date.now() + this.serverOffsetMs - Date.parse(this.lastStartedAt));
     const expected = (elapsed / 1000) % duration;
     try { video.currentTime = expected; } catch { /* Metadata may not be seekable yet. */ }
     void video.play().catch(() => {
@@ -139,41 +151,72 @@ export class AppComponent implements OnDestroy {
 
   private lastConfiguration: PlayerConfiguration | null = null;
 
-  private async applyConfiguration(config: PlayerConfiguration): Promise<void> {
-    const midpoint = Date.now();
-    this.serverOffsetMs = Date.parse(config.serverTime) - midpoint;
+  private async applyConfiguration(
+    config: PlayerConfiguration,
+    requestStartedAt: number,
+    responseReceivedAt: number
+  ): Promise<void> {
+    this.serverOffsetMs = Date.parse(config.serverTime) - (requestStartedAt + responseReceivedAt) / 2;
     this.lastConfiguration = config;
     this.deviceName.set(config.device.name);
+
     if (!config.assignment) {
+      this.currentMediaId = '';
+      this.currentRevision = 0;
+      this.lastStartedAt = '';
       this.mediaUrl.set('');
       this.mediaKind.set(null);
+      localStorage.removeItem('tv-one-last-assignment-v1');
       this.message.set('Для этого экрана пока не назначен контент.');
       return;
     }
 
     const assignment = config.assignment;
+    const media = assignment.media;
     this.revision.set(assignment.revision);
     this.imageDurationMs.set(assignment.imageDurationMs);
-    const media = assignment.media;
-    const cached = await this.getCachedMedia(media.id);
+    this.lastStartedAt = assignment.startedAt;
 
-    if (navigator.onLine) {
+    localStorage.setItem('tv-one-last-assignment-v1', JSON.stringify({
+      mediaId: media.id,
+      kind: media.kind,
+      startedAt: assignment.startedAt,
+      imageDurationMs: assignment.imageDurationMs,
+      revision: assignment.revision,
+      serverOffsetMs: this.serverOffsetMs
+    }));
+
+    // Same immutable media revision: do not download it again or recreate the
+    // object URL. Keep correcting video drift against the shared server clock.
+    if (this.currentMediaId === media.id && this.currentRevision === assignment.revision) {
+      if (media.kind === 'video') this.syncVideoPosition();
+      else this.scheduleImageRefresh(assignment.imageDurationMs);
+      if (!this.mediaUrl().startsWith('blob:')) this.mediaUrl.set(media.url);
+      this.message.set(this.offline() ? 'Автономное воспроизведение' : 'Воспроизведение');
+      return;
+    }
+
+    let cachedBlob = await this.getCachedMedia(media.id);
+    if (!cachedBlob && navigator.onLine) {
       try {
         const response = await fetch(media.url, { cache: 'no-store' });
         if (!response.ok) throw new Error('Media download failed.');
         const blob = await response.blob();
-        if (blob.size > 0 && blob.size <= 50 * 1024 * 1024) {
-          await this.storeCachedMedia(media.id, blob, media.mimeType);
+        if (blob.size === 0 || blob.size > 50 * 1024 * 1024) {
+          throw new Error('Media file has an invalid size.');
         }
+        await this.storeCachedMedia(media.id, blob, media.mimeType);
+        cachedBlob = blob;
       } catch {
         this.offline.set(true);
       }
     }
 
-    const freshBlob = await this.getCachedMedia(media.id);
-    if (freshBlob) {
-      this.setBlobMedia(freshBlob, media.kind);
+    if (cachedBlob) {
+      this.setBlobMedia(cachedBlob, media.kind);
     } else if (navigator.onLine) {
+      // Stream directly if persistent storage is unavailable; offline playback
+      // cannot be promised until the browser has cached the complete file.
       this.mediaUrl.set(media.url);
       this.mediaKind.set(media.kind);
     } else {
@@ -181,9 +224,21 @@ export class AppComponent implements OnDestroy {
       return;
     }
 
+    this.currentMediaId = media.id;
+    this.currentRevision = assignment.revision;
     this.message.set(this.offline() ? 'Автономное воспроизведение' : 'Воспроизведение');
     if (media.kind === 'image') this.scheduleImageRefresh(assignment.imageDurationMs);
-    void cached;
+  }
+
+  private syncVideoPosition(): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0 || !this.lastStartedAt) return;
+    const elapsed = Math.max(0, Date.now() + this.serverOffsetMs - Date.parse(this.lastStartedAt));
+    const expected = (elapsed / 1000) % video.duration;
+    if (Math.abs(video.currentTime - expected) > 1.25) {
+      try { video.currentTime = expected; } catch { /* A seek can be rejected while metadata is changing. */ }
+    }
+    if (video.paused) void video.play().catch(() => undefined);
   }
 
   private async initialize(): Promise<void> {
@@ -196,9 +251,11 @@ export class AppComponent implements OnDestroy {
     this.selectedDeviceId.set(pairing.deviceId);
     this.pairingSecret.set(pairing.pairingSecret);
     try {
+      const requestStartedAt = Date.now();
       const config = await this.api.configuration(pairing.deviceId, pairing.pairingSecret);
+      const responseReceivedAt = Date.now();
       this.setupRequired.set(false);
-      await this.applyConfiguration(config);
+      await this.applyConfiguration(config, requestStartedAt, responseReceivedAt);
       this.startPolling();
     } catch {
       this.offline.set(true);
@@ -272,10 +329,14 @@ export class AppComponent implements OnDestroy {
       return;
     }
     try {
-      const saved = JSON.parse(raw) as { mediaId: string; kind: 'image' | 'video'; startedAt: string; imageDurationMs: number };
+      const saved = JSON.parse(raw) as { mediaId: string; kind: 'image' | 'video'; startedAt: string; imageDurationMs: number; revision?: number; serverOffsetMs?: number };
       const blob = await this.getCachedMedia(saved.mediaId);
       if (!blob) throw new Error('Cached media missing.');
       this.setBlobMedia(blob, saved.kind);
+      this.lastStartedAt = saved.startedAt;
+      this.currentMediaId = saved.mediaId;
+      this.currentRevision = saved.revision ?? 0;
+      this.serverOffsetMs = saved.serverOffsetMs ?? 0;
       this.imageDurationMs.set(saved.imageDurationMs);
       this.message.set('Автономное воспроизведение последнего контента');
     } catch {
