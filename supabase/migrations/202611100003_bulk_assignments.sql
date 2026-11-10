@@ -15,6 +15,7 @@ declare
   v_device_id uuid;
   v_device_count integer;
   v_started_at timestamptz;
+  v_assignment public.device_assignments%rowtype;
 begin
   if p_device_ids is null
      or cardinality(p_device_ids) < 1
@@ -57,7 +58,6 @@ begin
   v_started_at := clock_timestamp();
 
   foreach v_device_id in array p_device_ids loop
-    return query
     insert into public.device_assignments (
       device_id, venue_id, media_asset_id, revision, started_at, image_duration_ms
     )
@@ -70,7 +70,9 @@ begin
           started_at = excluded.started_at,
           image_duration_ms = excluded.image_duration_ms,
           updated_at = v_started_at
-    returning *;
+    returning * into v_assignment;
+
+    return next v_assignment;
   end loop;
 end;
 $$;
