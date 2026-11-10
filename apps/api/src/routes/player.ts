@@ -95,7 +95,12 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
       return reply.code(503).send({ error: 'PLAYER_CONFIG_UNAVAILABLE' });
     }
 
-    const serverTime = new Date().toISOString();
+    const { data: serverClock, error: clockError } = await supabaseAdmin.rpc('get_server_time');
+    if (clockError || !serverClock) {
+      app.log.error({ err: clockError }, 'Database clock lookup failed');
+      return reply.code(503).send({ error: 'PLAYER_CLOCK_UNAVAILABLE' });
+    }
+    const serverTime = new Date(serverClock).toISOString();
 
     await supabaseAdmin
       .from('devices')
@@ -156,7 +161,7 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
           width: asset.width,
           height: asset.height,
           url: signed.signedUrl,
-          urlExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+          urlExpiresAt: new Date(Date.parse(serverTime) + 60 * 60 * 1000).toISOString()
         }
       }
     };
