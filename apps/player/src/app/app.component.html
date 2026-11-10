@@ -1,0 +1,31 @@
+@if (setupRequired()) {
+  <main class="setup-screen">
+    <div class="setup-brand"><span>TV</span> ONE <small>DISPLAY PLAYER</small></div>
+    <section class="setup-card">
+      <p class="eyebrow">DEVICE SETUP / 01</p>
+      <h1>Подключение экрана</h1>
+      <p class="muted">Выберите заведение и устройство. Секрет привязки выдаётся администратором при создании телевизора.</p>
+      <label>Заведение<select [ngModel]="selectedVenueId()" (ngModelChange)="selectVenue($event)"><option value="">Выберите заведение</option>@for (venue of venues(); track venue.id) { <option [value]="venue.id">{{ venue.name }}</option> }</select></label>
+      <label>Устройство<select [ngModel]="selectedDeviceId()" (ngModelChange)="selectedDeviceId.set($event)" [disabled]="!devices().length"><option value="">Выберите экран</option>@for (device of devices(); track device.id) { <option [value]="device.id">{{ device.name }}</option> }</select></label>
+      <label>Секрет привязки<input type="password" autocomplete="off" [ngModel]="pairingSecret()" (ngModelChange)="pairingSecret.set($event)" placeholder="Вставьте секрет из панели администратора"></label>
+      <button (click)="connect()" [disabled]="loading()">Подключить экран ↗</button>
+      <p class="status">{{ message() }}</p>
+    </section>
+    <footer>TV ONE · SECURE DEVICE PAIRING</footer>
+  </main>
+} @else {
+  <main class="player-screen">
+    @if (mediaKind() === 'video' && mediaUrl()) {
+      <video #videoElement [src]="mediaUrl()" autoplay muted loop playsinline (loadedmetadata)="onVideoMetadata(videoElement)" (click)="videoElement.muted = !videoElement.muted"></video>
+    } @else if (mediaKind() === 'image' && mediaUrl()) {
+      <img [src]="mediaUrl()" alt="Venue advertising content">
+    } @else {
+      <div class="empty-player"><span>TV ONE</span><p>{{ message() }}</p></div>
+    }
+    <div class="player-hud">
+      <span>{{ deviceName() || 'TV ONE PLAYER' }}</span>
+      <span class="connection" [class.offline]="offline()"><i></i>{{ offline() ? 'OFFLINE' : 'CONNECTED' }}</span>
+    </div>
+    <button class="setup-button" (click)="resetPairing()" aria-label="Настройки устройства">⚙</button>
+  </main>
+}
