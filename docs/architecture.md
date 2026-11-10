@@ -7,7 +7,7 @@ The platform is split into three deployable applications and one shared package:
 1. **Admin** is a browser application. It authenticates administrators with Supabase Auth and calls protected API endpoints.
 2. **API** is the trusted application boundary. It validates Supabase access tokens, enforces authorization, owns privileged database and Storage operations, and exposes a narrow public device/player API.
 3. **Player** is a public browser application for venue displays. A device is paired using a high-entropy device credential; public endpoints expose only the configuration needed by that device.
-4. **Shared** contains runtime schemas and TypeScript contracts. It must not contain secrets or server-only modules.
+4. **Shared** contains TypeScript DTO contracts used to keep API and browser payload shapes aligned. Runtime validation remains enforced at the API boundary. It must not contain secrets or server-only modules.
 
 ## Synchronization model
 
