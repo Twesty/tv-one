@@ -8,6 +8,9 @@ on:
       - 'apps/player/**'
       - 'package.json'
       - 'pnpm-workspace.yaml'
+      - 'scripts/**'
+      - 'render.yaml'
+      - 'apps/api/src/app.ts'
       - '.github/workflows/**'
   pull_request:
     paths:
@@ -26,6 +29,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate production browser configuration generation
+        env:
+          PUBLIC_API_URL: https://tv-one.example.invalid
+          SUPABASE_URL: https://project.example.invalid
+          SUPABASE_ANON_KEY: public-anon-key-for-build-validation
+        run: node scripts/write-browser-config.mjs
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
