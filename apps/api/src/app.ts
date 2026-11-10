@@ -69,7 +69,14 @@ export async function buildApp(): Promise<FastifyInstance> {
     prefix: '/admin/',
     wildcard: false,
     decorateReply: false,
-    maxAge: '1h'
+    maxAge: '1y',
+    setHeaders(response, filePath) {
+      if (filePath.endsWith('index.html') || filePath.endsWith('runtime-config.js')) {
+        response.setHeader('Cache-Control', 'no-store');
+      } else {
+        response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
   });
 
   await app.register(fastifyStatic, {
