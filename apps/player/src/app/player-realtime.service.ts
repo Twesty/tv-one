@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js';
 import { PLAYER_CONFIG } from './runtime-config';
 
 @Injectable({ providedIn: 'root' })
