@@ -18,6 +18,9 @@ on:
       - 'apps/player/**'
       - 'package.json'
       - 'pnpm-workspace.yaml'
+      - 'scripts/**'
+      - 'render.yaml'
+      - 'apps/api/src/app.ts'
       - '.github/workflows/**'
 
 permissions:
@@ -30,13 +33,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate production browser configuration generation
-        env:
-          PUBLIC_API_URL: https://tv-one.example.invalid
-          SUPABASE_URL: https://project.example.invalid
-          SUPABASE_ANON_KEY: public-anon-key-for-build-validation
-        run: node scripts/write-browser-config.mjs
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -46,6 +42,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Validate production browser configuration generation
+        env:
+          PUBLIC_API_URL: https://tv-one.example.invalid
+          SUPABASE_URL: https://project.example.invalid
+          SUPABASE_ANON_KEY: public-anon-key-for-build-validation
+        run: node scripts/write-browser-config.mjs
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
