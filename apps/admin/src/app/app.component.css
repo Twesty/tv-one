@@ -66,3 +66,5 @@ footer { border-top:1px solid var(--line); padding:18px 42px; color:#92958d; fon
 .device-pick-list { display:flex; flex-wrap:wrap; gap:8px; }
 .device-pick { display:flex; flex-direction:row; align-items:center; gap:7px; padding:8px 10px; border:1px solid #e1e3da; background:#fff; font-size:11px; }
 .device-pick input { width:14px; height:14px; padding:0; accent-color:#171816; }
+
+.text-action { border:0; background:none; color:#50554a; font-size:10px; }
