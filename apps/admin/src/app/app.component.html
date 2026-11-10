@@ -73,7 +73,7 @@
                 <button class="primary" type="button" (click)="assignSelectedMedia()" [disabled]="busy() || !selectedMediaId || !selectedDeviceIds().length">Назначить на {{ selectedDeviceIds().length }} экранов ↗</button>
               </div>
               @for (device of devices(); track device.id) {
-                <div class="device-row"><span class="device-icon">▣</span><span class="device-info"><strong>{{ device.name }}</strong><small>{{ device.id }}</small></span><span class="device-status" [class.revoked]="device.status === 'revoked'">{{ device.status }}</span><span class="last-seen">{{ device.last_seen_at ? (device.last_seen_at | date:'short') : 'Не подключался' }}</span>@if (device.status === 'active') { <button class="text-danger" (click)="revokeDevice(device)">Отозвать</button> }</div>
+                <div class="device-row"><span class="device-icon">▣</span><span class="device-info"><strong>{{ device.name }}</strong><small>{{ device.id }}</small></span><span class="device-status" [class.revoked]="device.status === 'revoked'">{{ device.status }}</span><span class="last-seen">{{ device.last_seen_at ? (device.last_seen_at | date:'short') : 'Не подключался' }}</span>@if (device.status === 'active') { <button class="text-action" (click)="renameDevice(device)">Изменить</button><button class="text-danger" (click)="revokeDevice(device)">Отозвать</button> }</div>
               } @empty { <p class="empty">Устройства ещё не добавлены.</p> }
             } @else { <p class="empty">Сначала выберите заведение.</p> }
           </section>
