@@ -58,7 +58,7 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
     }
     if (!venue) return reply.code(404).send({ error: 'VENUE_NOT_FOUND' });
 
-    let part;
+    let part: Awaited<ReturnType<typeof request.file>>;
     try {
       part = await request.file({
         limits: {
