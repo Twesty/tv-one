@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from './core/auth.service';
@@ -35,7 +35,11 @@ export class AppComponent {
   );
 
   constructor() {
-    void this.loadVenues();
+    effect(() => {
+      if (!this.auth.isLoading() && this.auth.isAuthenticated()) {
+        void this.loadVenues();
+      }
+    });
   }
 
   async signIn(): Promise<void> {
