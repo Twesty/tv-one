@@ -52,6 +52,8 @@ export class AuthService {
       const { data, error } = await this.client.auth.getSession();
       if (error) throw error;
       this.user.set(data.session?.user ?? null);
+    } catch {
+      this.user.set(null);
     } finally {
       this.isLoading.set(false);
     }
