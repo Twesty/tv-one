@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
 
 const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
-const allowedTypes = new Map([
+const allowedTypes = new Map<string, { kind: 'image' | 'video'; extension: string }>([
   ['image/jpeg', { kind: 'image', extension: 'jpg' }],
   ['image/png', { kind: 'image', extension: 'png' }],
   ['image/webp', { kind: 'image', extension: 'webp' }],
@@ -13,7 +13,7 @@ const allowedTypes = new Map([
   ['video/mp4', { kind: 'video', extension: 'mp4' }],
   ['video/webm', { kind: 'video', extension: 'webm' }],
   ['video/quicktime', { kind: 'video', extension: 'mov' }]
-] as const);
+]);
 
 export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
   app.get('/venues/:venueId/media', async (request, reply) => {
