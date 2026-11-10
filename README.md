@@ -35,9 +35,11 @@ See [docs/architecture.md](docs/architecture.md) and [docs/deployment.md](docs/d
 - [x] Single-device and bulk synchronized assignment endpoints
 - [x] Public player directory and device credential verification
 - [x] Database clock endpoint for playback synchronization
-- [ ] Angular admin application
-- [ ] Angular TV player, synchronized playback and offline cache
-- [ ] Realtime reconciliation and integration tests
+- [x] Angular admin application foundation (auth, venues, devices, media, bulk assignment UI)
+- [x] Angular TV player foundation (pairing, server-time playback, media cache, polling)
+- [x] Supabase Realtime assignment broadcasts with polling fallback
+- [ ] End-to-end tests for synchronization, cache eviction, and reconnect behavior
+- [ ] Realtime permissions and production channel verification
 - [ ] Render/Supabase production deployment and smoke tests
 
 This is an active implementation, not yet a production-ready release. Do not deploy to real venues until the remaining items, CI checks, and live integration tests have passed.
