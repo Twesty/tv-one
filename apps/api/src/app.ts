@@ -2,6 +2,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import multipart from '@fastify/multipart';
 import { env } from './config/env.js';
 import { supabaseAdmin } from './config/supabase.js';
 import { registerRoutes } from './routes/index.js';
@@ -37,6 +38,14 @@ export async function buildApp(): Promise<FastifyInstance> {
       }
 
       callback(new Error('Origin is not allowed by CORS.'), false);
+    }
+  });
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024,
+      files: 1,
+      fields: 0
     }
   });
 
