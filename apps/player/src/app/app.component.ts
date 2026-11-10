@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { PlayerApiService, PlayerDevice, PlayerVenue } from './player-api.service';
+import { PlayerApiService, PlayerConfiguration, PlayerDevice, PlayerVenue } from './player-api.service';
 import { PlayerRealtimeService } from './player-realtime.service';
 
 interface SavedPairing { venueId: string; deviceId: string; pairingSecret: string; }
