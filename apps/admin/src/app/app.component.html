@@ -66,6 +66,12 @@
           <section class="panel"><div class="panel-head"><div><p class="eyebrow">DISPLAY NETWORK</p><h2>Экраны и телевизоры</h2></div><span class="pill">{{ devices().length }} DEVICES</span></div>
             @if (selectedVenue()) {
               <form class="inline-create" (ngSubmit)="createDevice()"><input name="deviceName" [(ngModel)]="deviceName" placeholder="Название, например TV-01" maxlength="80" required><button class="primary" type="submit" [disabled]="busy()">Добавить устройство ↗</button></form>
+              <div class="assignment-box">
+                <div><p class="eyebrow">SYNCHRONIZED PLAYBACK</p><strong>Назначить контент нескольким экранам</strong><p class="muted">Все выбранные устройства получат одну серверную временную отметку.</p></div>
+                <label>Медиафайл<select name="selectedMediaId" [(ngModel)]="selectedMediaId"><option value="">Выберите готовый файл</option>@for (asset of media(); track asset.id) { @if (asset.status === 'ready') { <option [value]="asset.id">{{ asset.original_name }}</option> } }</select></label>
+                <div class="device-pick-list">@for (device of devices(); track device.id) { @if (device.status === 'active') { <label class="device-pick"><input type="checkbox" [checked]="selectedDeviceIds().includes(device.id)" (change)="toggleDevice(device.id, $any($event.target).checked)"><span>{{ device.name }}</span></label> } }</div>
+                <button class="primary" type="button" (click)="assignSelectedMedia()" [disabled]="busy() || !selectedMediaId || !selectedDeviceIds().length">Назначить на {{ selectedDeviceIds().length }} экранов ↗</button>
+              </div>
               @for (device of devices(); track device.id) {
                 <div class="device-row"><span class="device-icon">▣</span><span class="device-info"><strong>{{ device.name }}</strong><small>{{ device.id }}</small></span><span class="device-status" [class.revoked]="device.status === 'revoked'">{{ device.status }}</span><span class="last-seen">{{ device.last_seen_at ? (device.last_seen_at | date:'short') : 'Не подключался' }}</span>@if (device.status === 'active') { <button class="text-danger" (click)="revokeDevice(device)">Отозвать</button> }</div>
               } @empty { <p class="empty">Устройства ещё не добавлены.</p> }
