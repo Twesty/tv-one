@@ -109,6 +109,12 @@ export class ApiService {
     ));
   }
 
+  async deleteMedia(venueId: string, mediaId: string): Promise<void> {
+    await firstValueFrom(this.http.delete(
+      `${this.baseUrl}/api/admin/venues/${encodeURIComponent(venueId)}/media/${encodeURIComponent(mediaId)}`
+    ));
+  }
+
   async uploadMedia(venueId: string, file: File): Promise<MediaAsset> {
     const formData = new FormData();
     formData.append('file', file);
