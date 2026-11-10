@@ -59,3 +59,10 @@ footer { border-top:1px solid var(--line); padding:18px 42px; color:#92958d; fon
 .center-state { min-height:100vh; display:grid; place-content:center; justify-items:center; color:var(--muted); font-size:12px; }.center-state .loader { width:24px; height:24px; }
 @media (max-width:1050px) { .sidebar { width:205px; }.main-area { margin-left:205px; }.content { padding:30px 24px; }.topbar { padding:0 24px; }.stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.columns { grid-template-columns:1fr; } }
 @media (max-width:700px) { .sidebar { position:static; width:auto; height:auto; padding:13px 16px; flex-direction:row; align-items:center; border-right:0; border-bottom:1px solid var(--line); }.side-label,.sidebar-bottom { display:none; }.sidebar .brand { margin-right:auto; }.nav-item { padding:9px; font-size:0; gap:0; }.nav-item span { font-size:18px; }.main-area { margin-left:0; }.topbar { height:52px; padding:0 16px; }.content { padding:25px 15px 40px; }.page-heading { align-items:start; }.count-tag { margin-top:10px; }.venue-toolbar { align-items:stretch; flex-direction:column; }.venue-select { max-width:none; }.stats-grid { gap:8px; }.stat-card { padding:13px; min-height:105px; }.stat-card strong { font-size:25px; }.panel { padding:16px; }.device-row,.media-row { flex-wrap:wrap; }.last-seen { display:none; }.inline-create { flex-direction:column; }.inline-create input { max-width:none; }.secret-panel { align-items:flex-start; flex-wrap:wrap; }.secret-panel>div { flex-basis:100%; }footer { padding:15px; }.footer-right { display:none; } }
+
+.assignment-box { margin:10px 0 20px; padding:17px; background:#f5f6f0; border:1px solid #e5e7de; display:grid; gap:13px; }
+.assignment-box>div:first-child strong { font-size:13px; }
+.assignment-box .muted { margin:5px 0 0; }
+.device-pick-list { display:flex; flex-wrap:wrap; gap:8px; }
+.device-pick { display:flex; flex-direction:row; align-items:center; gap:7px; padding:8px 10px; border:1px solid #e1e3da; background:#fff; font-size:11px; }
+.device-pick input { width:14px; height:14px; padding:0; accent-color:#171816; }
