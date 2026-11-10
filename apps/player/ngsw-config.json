@@ -8,8 +8,7 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-          "/favicon.ico",
-          "/index.html",
+              "/index.html",
           "/*.css",
           "/*.js",
           "/assets/**"
