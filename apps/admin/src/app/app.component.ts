@@ -73,6 +73,31 @@ export class AppComponent {
     await this.loadVenueData(id);
   }
 
+  async renameVenue(): Promise<void> {
+    const venue = this.selectedVenue();
+    if (!venue) return;
+    const name = window.prompt('Новое название заведения', venue.name)?.trim();
+    if (!name || name === venue.name) return;
+    this.run(async () => {
+      const updated = await this.api.updateVenue(venue.id, { name });
+      this.venues.update((items) => items.map((item) => item.id === updated.id ? updated : item));
+      this.notice.set('Название заведения обновлено.');
+    });
+  }
+
+  async deactivateVenue(): Promise<void> {
+    const venue = this.selectedVenue();
+    if (!venue || !window.confirm(`Деактивировать заведение «${venue.name}»? Его данные сохранятся, но экраны перестанут получать контент.`)) return;
+    this.run(async () => {
+      await this.api.deactivateVenue(venue.id);
+      this.venues.update((items) => items.filter((item) => item.id !== venue.id));
+      this.selectedVenueId.set('');
+      this.devices.set([]);
+      this.media.set([]);
+      this.notice.set('Заведение деактивировано.');
+    });
+  }
+
   async createVenue(): Promise<void> {
     if (!this.venueName.trim()) return;
     this.run(async () => {
