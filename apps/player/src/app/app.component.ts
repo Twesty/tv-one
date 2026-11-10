@@ -132,6 +132,18 @@ export class AppComponent implements OnDestroy {
     }
   }
 
+  async toggleFullscreen(): Promise<void> {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      this.message.set('Полноэкранный режим недоступен в этом браузере.');
+    }
+  }
+
   async resetPairing(): Promise<void> {
     localStorage.removeItem(this.savedKey);
     this.stopTimers();
