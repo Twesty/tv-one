@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest, preHandlerHookHandler } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { supabaseAdmin, supabaseAuth } from '../config/supabase.js';
 
 declare module 'fastify' {
@@ -10,7 +10,7 @@ declare module 'fastify' {
   }
 }
 
-export const authenticateAdmin: preHandlerHookHandler = async (
+export const authenticateAdmin = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
