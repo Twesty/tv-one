@@ -2,7 +2,6 @@ import { createHash, randomBytes } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
-import { authenticateAdmin } from '../auth/admin-auth.js';
 
 const idSchema = z.string().uuid();
 const venueCreateSchema = z.object({
@@ -26,8 +25,6 @@ function parseId(value: string): string | null {
 }
 
 export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
-  app.addHook('preHandler', authenticateAdmin);
-
   app.get('/venues', async (_request, reply) => {
     const { data, error } = await supabaseAdmin
       .from('venues')
