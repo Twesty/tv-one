@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import { env } from './config/env.js';
 import { supabaseAdmin } from './config/supabase.js';
+import { registerRoutes } from './routes/index.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -18,6 +19,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     trustProxy: true,
     bodyLimit: 1_048_576
   });
+
+  app.decorateRequest('adminUser', null);
 
   await app.register(helmet, {
     contentSecurityPolicy: false
@@ -66,6 +69,8 @@ export async function buildApp(): Promise<FastifyInstance> {
       service: 'tv-one-api'
     };
   });
+
+  await registerRoutes(app);
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ err: error }, 'Unhandled request error');
