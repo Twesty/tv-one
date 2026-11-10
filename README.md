@@ -30,13 +30,13 @@ See [docs/architecture.md](docs/architecture.md) and [docs/deployment.md](docs/d
 - [x] Initial Supabase schema, RLS defaults, private media bucket
 - [x] Fastify API foundation and production configuration validation
 - [x] Supabase administrator token and role verification
-- [x] Venue and device administration endpoints
-- [x] Media listing and signature-validated uploads (50 MiB limit)
+- [x] Venue and device administration endpoints (including rename and revocation)
+- [x] Media listing, signature-validated uploads, and safe deletion of unassigned files (50 MiB limit)
 - [x] Single-device and bulk synchronized assignment endpoints
 - [x] Public player directory and device credential verification
 - [x] Database clock endpoint for playback synchronization
 - [x] Angular admin application foundation (auth, venues, devices, media, bulk assignment UI)
-- [x] Angular TV player foundation (pairing, server-time playback, media cache, polling)
+- [x] Angular TV player foundation (pairing, server-time playback, media cache, app-shell offline support, polling)
 - [x] Supabase Realtime assignment broadcasts with polling fallback
 - [ ] End-to-end tests for synchronization, cache eviction, and reconnect behavior
 - [ ] Realtime permissions and production channel verification
