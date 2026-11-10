@@ -4,8 +4,11 @@ import { registerAdminRoutes } from './admin.js';
 import { registerAssignmentRoutes } from './assignments.js';
 import { registerMediaRoutes } from './media.js';
 import { registerBulkAssignmentRoutes } from './bulk-assignments.js';
+import { registerPlayerRoutes } from './player.js';
 
 export async function registerRoutes(app: FastifyInstance): Promise<void> {
+  await app.register(registerPlayerRoutes, { prefix: '/api/player' });
+
   await app.register(
     async (adminApp) => {
       adminApp.addHook('preHandler', authenticateAdmin);
