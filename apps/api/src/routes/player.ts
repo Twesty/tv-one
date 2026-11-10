@@ -56,7 +56,11 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
     return { data };
   });
 
-  app.post('/config', async (request, reply) => {
+  app.post('/config', {
+    config: {
+      rateLimit: { max: 10, timeWindow: '1 minute' }
+    }
+  }, async (request, reply) => {
     const parsed = credentialSchema.safeParse(request.body);
     if (!parsed.success) {
       return reply.code(400).send({
