@@ -1,4 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
+import fastifyStatic from '@fastify/static';
+import { resolve } from 'node:path';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -6,6 +8,7 @@ import multipart from '@fastify/multipart';
 import { env } from './config/env.js';
 import { supabaseAdmin } from './config/supabase.js';
 import { registerRoutes } from './routes/index.js';
+import { writeBrowserRuntimeConfig } from './config/runtime-config.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -22,6 +25,33 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.decorateRequest('adminUser', null);
+
+  await writeBrowserRuntimeConfig();
+
+  const adminRoot = resolve(process.cwd(), '../admin/dist/admin/browser');
+  const playerRoot = resolve(process.cwd(), '../player/dist/player/browser');
+
+  await app.register(fastifyStatic, {
+    root: adminRoot,
+    prefix: '/admin/',
+    wildcard: false,
+    decorateReply: false,
+    maxAge: '1h'
+  });
+
+  await app.register(fastifyStatic, {
+    root: playerRoot,
+    prefix: '/player/',
+    wildcard: false,
+    decorateReply: false,
+    maxAge: '1h'
+  });
+
+  app.get('/', async (_request, reply) => reply.redirect('/admin/'));
+  app.get('/admin', async (_request, reply) => reply.redirect('/admin/'));
+  app.get('/player', async (_request, reply) => reply.redirect('/player/'));
+  app.get('/admin/*', async (_request, reply) => reply.sendFile('index.html'));
+  app.get('/player/*', async (_request, reply) => reply.sendFile('index.html'));
 
   await app.register(helmet, {
     contentSecurityPolicy: false
