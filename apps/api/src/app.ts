@@ -64,6 +64,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifyStatic, {
     root: adminRoot,
     prefix: '/admin/',
+    index: ['index.html'],
     wildcard: false,
     decorateReply: false,
     maxAge: '1y',
@@ -79,6 +80,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(fastifyStatic, {
     root: playerRoot,
     prefix: '/player/',
+    index: ['index.html'],
     wildcard: false,
     decorateReply: false,
     maxAge: '1y',
