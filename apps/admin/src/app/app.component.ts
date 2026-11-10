@@ -122,6 +122,15 @@ export class AppComponent {
     });
   }
 
+  async unassignDevice(device: Device): Promise<void> {
+    if (!device.device_assignments || !window.confirm(`Снять назначенный контент с «${device.name}»?`)) return;
+    this.run(async () => {
+      await this.api.unassignDevice(device.id);
+      await this.loadVenueData(this.selectedVenueId());
+      this.notice.set('Назначение контента снято.');
+    });
+  }
+
   async renameDevice(device: Device): Promise<void> {
     const venueId = this.selectedVenueId();
     if (!venueId) return;
