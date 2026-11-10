@@ -67,7 +67,7 @@ export class AppComponent {
     });
   }
 
-  async selectVenue(id: string): Promise<void> {
+  selectVenue(id: string): void {
     this.selectedVenueId.set(id);
     this.pairingSecret.set('');
     if (!id) {
@@ -77,7 +77,7 @@ export class AppComponent {
       this.selectedMediaId = '';
       return;
     }
-    await this.loadVenueData(id);
+    this.run(() => this.loadVenueData(id));
   }
 
   async renameVenue(): Promise<void> {
@@ -216,8 +216,12 @@ export class AppComponent {
   async copySecret(): Promise<void> {
     const secret = this.pairingSecret();
     if (!secret) return;
-    await navigator.clipboard.writeText(secret);
-    this.notice.set('Секрет скопирован.');
+    try {
+      await navigator.clipboard.writeText(secret);
+      this.notice.set('Секрет скопирован.');
+    } catch {
+      this.error.set('Не удалось скопировать секрет. Скопируйте его вручную.');
+    }
   }
 
   private async loadVenueData(venueId: string): Promise<void> {
