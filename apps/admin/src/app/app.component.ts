@@ -104,7 +104,8 @@ export class AppComponent {
     });
   }
 
-  toggleDevice(deviceId: string, checked: boolean): void {
+  onDeviceToggle(deviceId: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
     this.selectedDeviceIds.update((ids) =>
       checked ? [...new Set([...ids, deviceId])] : ids.filter((id) => id !== deviceId)
     );
