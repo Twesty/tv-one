@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { PlayerApiService, PlayerConfiguration, PlayerDevice, PlayerVenue } from './player-api.service';
+import { PlayerApiService, PlayerDevice, PlayerVenue } from './player-api.service';
 import { PlayerRealtimeService } from './player-realtime.service';
 
 interface SavedPairing { venueId: string; deviceId: string; pairingSecret: string; }
@@ -152,15 +152,12 @@ export class AppComponent implements OnDestroy {
     });
   }
 
-  private lastConfiguration: PlayerConfiguration | null = null;
-
   private async applyConfiguration(
     config: PlayerConfiguration,
     requestStartedAt: number,
     responseReceivedAt: number
   ): Promise<void> {
     this.serverOffsetMs = Date.parse(config.serverTime) - (requestStartedAt + responseReceivedAt) / 2;
-    this.lastConfiguration = config;
     this.deviceName.set(config.device.name);
 
     if (!config.assignment) {
