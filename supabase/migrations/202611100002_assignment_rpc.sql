@@ -35,7 +35,8 @@ begin
     from public.media_assets a
    where a.id = p_media_asset_id
      and a.venue_id = v_venue_id
-     and a.status = 'ready';
+     and a.status = 'ready'
+   for share;
 
   if not found then
     raise exception 'MEDIA_ASSET_NOT_READY_OR_NOT_IN_VENUE' using errcode = '23503';
