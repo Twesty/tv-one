@@ -181,7 +181,7 @@ export class AppComponent implements OnDestroy {
 
     // If only the schedule anchor/revision changed but the media did not,
     // keep the current source and correct the video against server time.
-    if (this.currentMediaId === media.id && this.currentRevision === assignment.revision) {
+    if (this.currentMediaId === media.id && this.currentRevision === assignment.revision && (this.currentMediaPersisted || this.mediaUrl().startsWith('blob:'))) {
       this.lastStartedAt = assignment.startedAt;
       this.revision.set(assignment.revision);
       this.imageDurationMs.set(assignment.imageDurationMs);
