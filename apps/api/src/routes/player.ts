@@ -41,6 +41,19 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
       return reply.code(400).send({ error: 'INVALID_VENUE_ID' });
     }
 
+    const { data: venue, error: venueError } = await supabaseAdmin
+      .from('venues')
+      .select('id')
+      .eq('id', parsedId.data)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (venueError) {
+      app.log.error({ err: venueError }, 'Public venue verification failed');
+      return reply.code(503).send({ error: 'PLAYER_DIRECTORY_UNAVAILABLE' });
+    }
+    if (!venue) return reply.code(404).send({ error: 'VENUE_NOT_FOUND' });
+
     const { data, error } = await supabaseAdmin
       .from('devices')
       .select('id, name')
@@ -87,6 +100,19 @@ export async function registerPlayerRoutes(app: FastifyInstance): Promise<void> 
     ) {
       return reply.code(401).send({ error: 'INVALID_DEVICE_CREDENTIALS' });
     }
+
+    const { data: venue, error: venueError } = await supabaseAdmin
+      .from('venues')
+      .select('id')
+      .eq('id', device.venue_id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (venueError) {
+      app.log.error({ err: venueError }, 'Player venue status lookup failed');
+      return reply.code(503).send({ error: 'PLAYER_CONFIG_UNAVAILABLE' });
+    }
+    if (!venue) return reply.code(403).send({ error: 'VENUE_INACTIVE' });
 
     const { data: assignment, error: assignmentError } = await supabaseAdmin
       .from('device_assignments')
