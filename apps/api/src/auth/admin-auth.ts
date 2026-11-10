@@ -20,19 +20,21 @@ export const authenticateAdmin = async (
     : '';
 
   if (!token) {
-    return reply.code(401).send({
+    reply.code(401).send({
       error: 'UNAUTHORIZED',
       message: 'A valid administrator access token is required.'
     });
+    return;
   }
 
   const { data: authData, error: authError } = await supabaseAuth.auth.getUser(token);
 
   if (authError || !authData.user) {
-    return reply.code(401).send({
+    reply.code(401).send({
       error: 'INVALID_TOKEN',
       message: 'The access token is invalid or expired.'
     });
+    return;
   }
 
   const { data: profile, error: profileError } = await supabaseAdmin
@@ -43,17 +45,19 @@ export const authenticateAdmin = async (
 
   if (profileError) {
     request.log.error({ err: profileError }, 'Administrator profile lookup failed');
-    return reply.code(503).send({
+    reply.code(503).send({
       error: 'AUTHORIZATION_UNAVAILABLE',
       message: 'Administrator authorization is temporarily unavailable.'
     });
+    return;
   }
 
   if (!profile || profile.role !== 'admin') {
-    return reply.code(403).send({
+    reply.code(403).send({
       error: 'FORBIDDEN',
       message: 'Administrator access is required.'
     });
+    return;
   }
 
   request.adminUser = {
