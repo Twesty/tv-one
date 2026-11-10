@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { supabaseAdmin } from '../config/supabase.js';
+import { publishAssignmentUpdates } from '../realtime/assignment-broadcast.js';
 
 const bulkAssignmentSchema = z.object({
   deviceIds: z.array(z.string().uuid()).min(1).max(100),
@@ -52,6 +53,7 @@ export async function registerBulkAssignmentRoutes(app: FastifyInstance): Promis
       return reply.code(500).send({ error: 'BULK_ASSIGNMENT_FAILED' });
     }
 
+    await publishAssignmentUpdates(parsed.data.deviceIds);
     return { data };
   });
 }
