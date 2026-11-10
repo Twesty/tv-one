@@ -17,12 +17,12 @@ export interface Device {
   name: string;
   status: 'active' | 'revoked';
   last_seen_at: string | null;
-  device_assignments: Array<{
+  device_assignments: {
     media_asset_id: string;
     revision: number;
     started_at: string;
     image_duration_ms: number;
-  }> | null;
+  } | null;
 }
 
 export interface MediaAsset {
@@ -73,6 +73,12 @@ export class ApiService {
       )
     );
     return response.data;
+  }
+
+  async unassignDevice(deviceId: string): Promise<void> {
+    await firstValueFrom(this.http.delete(
+      `${this.baseUrl}/api/admin/devices/${encodeURIComponent(deviceId)}/assignment`
+    ));
   }
 
   async renameDevice(venueId: string, deviceId: string, name: string): Promise<void> {
