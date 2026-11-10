@@ -54,7 +54,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(rateLimit, {
-    max: 120,
+    max: 600,
     timeWindow: '1 minute'
   });
 
