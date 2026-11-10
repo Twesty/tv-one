@@ -33,6 +33,7 @@ export class AppComponent implements OnDestroy {
   private lastStartedAt = '';
   private currentMediaId = '';
   private currentRevision = 0;
+  private currentMediaPersisted = false;
   private mediaUrlExpiresAt = '';
   @ViewChild('videoElement') private videoElement?: ElementRef<HTMLVideoElement>;
   private refreshHandle: ReturnType<typeof setInterval> | null = null;
@@ -43,7 +44,10 @@ export class AppComponent implements OnDestroy {
     this.offline.set(false);
     void this.refreshConfiguration();
   };
-  private readonly onOffline = (): void => this.offline.set(true);
+  private readonly onOffline = (): void => {
+    this.offline.set(true);
+    if (!this.mediaUrl().startsWith('blob:')) void this.loadCachedAssignment();
+  };
 
   constructor() {
     window.addEventListener('online', this.onOnline);
@@ -163,6 +167,7 @@ export class AppComponent implements OnDestroy {
     if (!config.assignment) {
       this.currentMediaId = '';
       this.currentRevision = 0;
+      this.currentMediaPersisted = false;
       this.lastStartedAt = '';
       this.mediaUrl.set('');
       this.mediaKind.set(null);
@@ -173,22 +178,16 @@ export class AppComponent implements OnDestroy {
 
     const assignment = config.assignment;
     const media = assignment.media;
-    this.revision.set(assignment.revision);
-    this.imageDurationMs.set(assignment.imageDurationMs);
-    this.lastStartedAt = assignment.startedAt;
 
-    localStorage.setItem('tv-one-last-assignment-v1', JSON.stringify({
-      mediaId: media.id,
-      kind: media.kind,
-      startedAt: assignment.startedAt,
-      imageDurationMs: assignment.imageDurationMs,
-      revision: assignment.revision,
-      serverOffsetMs: this.serverOffsetMs
-    }));
-
-    // Same immutable media revision: do not download it again or recreate the
-    // object URL. Keep correcting video drift against the shared server clock.
+    // If only the schedule anchor/revision changed but the media did not,
+    // keep the current source and correct the video against server time.
     if (this.currentMediaId === media.id && this.currentRevision === assignment.revision) {
+      this.lastStartedAt = assignment.startedAt;
+      this.revision.set(assignment.revision);
+      this.imageDurationMs.set(assignment.imageDurationMs);
+      if (this.currentMediaPersisted) {
+        this.saveAssignment(media.id, media.kind, assignment.startedAt, assignment.imageDurationMs, assignment.revision);
+      }
       if (media.kind === 'video') this.syncVideoPosition();
       else this.scheduleImageRefresh(assignment.imageDurationMs);
       if (!this.mediaUrl().startsWith('blob:') && Date.parse(this.mediaUrlExpiresAt) < Date.now() + 120000) {
@@ -200,6 +199,8 @@ export class AppComponent implements OnDestroy {
     }
 
     let cachedBlob = await this.getCachedMedia(media.id);
+    let persisted = cachedBlob !== null;
+
     if (!cachedBlob && navigator.onLine) {
       try {
         const response = await fetch(media.url, { cache: 'no-store' });
@@ -208,8 +209,14 @@ export class AppComponent implements OnDestroy {
         if (blob.size === 0 || blob.size > 50 * 1024 * 1024) {
           throw new Error('Media file has an invalid size.');
         }
-        await this.storeCachedMedia(media.id, blob, media.mimeType);
         cachedBlob = blob;
+        try {
+          await this.storeCachedMedia(media.id, blob, media.mimeType);
+          persisted = true;
+        } catch {
+          // Continue online from the in-memory Blob if browser storage is full.
+          persisted = false;
+        }
       } catch {
         this.offline.set(true);
       }
@@ -217,9 +224,9 @@ export class AppComponent implements OnDestroy {
 
     if (cachedBlob) {
       this.setBlobMedia(cachedBlob, media.kind);
-    } else if (navigator.onLine) {
-      // Stream directly if persistent storage is unavailable; offline playback
-      // cannot be promised until the browser has cached the complete file.
+    } else if (navigator.onLine && !this.offline()) {
+      // Stream directly if the complete file could not be downloaded.
+      // This mode is online-only and does not replace the last offline copy.
       this.mediaUrl.set(media.url);
       this.mediaUrlExpiresAt = media.urlExpiresAt;
       this.mediaKind.set(media.kind);
@@ -228,10 +235,36 @@ export class AppComponent implements OnDestroy {
       return;
     }
 
+    this.lastStartedAt = assignment.startedAt;
+    this.revision.set(assignment.revision);
+    this.imageDurationMs.set(assignment.imageDurationMs);
     this.currentMediaId = media.id;
     this.currentRevision = assignment.revision;
+    this.currentMediaPersisted = persisted;
+
+    if (persisted) {
+      this.saveAssignment(media.id, media.kind, assignment.startedAt, assignment.imageDurationMs, assignment.revision);
+    }
+
     this.message.set(this.offline() ? 'Автономное воспроизведение' : 'Воспроизведение');
     if (media.kind === 'image') this.scheduleImageRefresh(assignment.imageDurationMs);
+  }
+
+  private saveAssignment(
+    mediaId: string,
+    kind: 'image' | 'video',
+    startedAt: string,
+    imageDurationMs: number,
+    revision: number
+  ): void {
+    localStorage.setItem('tv-one-last-assignment-v1', JSON.stringify({
+      mediaId,
+      kind,
+      startedAt,
+      imageDurationMs,
+      revision,
+      serverOffsetMs: this.serverOffsetMs
+    }));
   }
 
   private syncVideoPosition(): void {
@@ -347,6 +380,7 @@ export class AppComponent implements OnDestroy {
       this.lastStartedAt = saved.startedAt;
       this.currentMediaId = saved.mediaId;
       this.currentRevision = saved.revision ?? 0;
+      this.currentMediaPersisted = true;
       this.serverOffsetMs = saved.serverOffsetMs ?? 0;
       this.imageDurationMs.set(saved.imageDurationMs);
       this.message.set('Автономное воспроизведение последнего контента');
