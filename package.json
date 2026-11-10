@@ -7,7 +7,11 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
     "test": "pnpm -r --if-present test",
-    "build": "pnpm -r --if-present build"
+    "build": "pnpm -r --if-present build",
+    "build:admin": "pnpm --filter @tv-one/admin build",
+    "build:player": "pnpm --filter @tv-one/player build",
+    "typecheck:admin": "pnpm --filter @tv-one/admin typecheck",
+    "typecheck:player": "pnpm --filter @tv-one/player typecheck"
   },
   "engines": {
     "node": ">=22.0.0"
