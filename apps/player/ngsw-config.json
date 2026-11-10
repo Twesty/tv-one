@@ -8,23 +8,11 @@
       "updateMode": "prefetch",
       "resources": {
         "files": [
-              "/index.html",
+          "/index.html",
           "/*.css",
           "/*.js",
           "/assets/**"
         ]
-      }
-    }
-  ],
-  "dataGroups": [
-    {
-      "name": "player-directory",
-      "urls": ["/api/player/venues", "/api/player/venues/**"],
-      "cacheConfig": {
-        "strategy": "freshness",
-        "maxSize": 20,
-        "maxAge": "1h",
-        "timeout": "3s"
       }
     }
   ]
