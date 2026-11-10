@@ -31,6 +31,7 @@ export async function registerAdminRoutes(app: FastifyInstance): Promise<void> {
     const { data, error } = await supabaseAdmin
       .from('venues')
       .select('id, name, description, is_active, created_at, updated_at')
+      .eq('is_active', true)
       .order('created_at', { ascending: false });
 
     if (error) {
