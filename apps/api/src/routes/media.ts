@@ -148,4 +148,69 @@ export async function registerMediaRoutes(app: FastifyInstance): Promise<void> {
 
     return reply.code(201).send({ data });
   });
+  app.delete('/venues/:venueId/media/:mediaId', async (request, reply) => {
+    const { venueId, mediaId } = request.params as {
+      venueId: string;
+      mediaId: string;
+    };
+    const venue = z.string().uuid().safeParse(venueId);
+    const media = z.string().uuid().safeParse(mediaId);
+    if (!venue.success || !media.success) {
+      return reply.code(400).send({ error: 'INVALID_RESOURCE_ID' });
+    }
+
+    const { data: storagePath, error: prepareError } = await supabaseAdmin.rpc(
+      'prepare_media_asset_deletion',
+      {
+        p_venue_id: venue.data,
+        p_media_asset_id: media.data
+      }
+    );
+
+    if (prepareError) {
+      if (prepareError.code === 'P0002') {
+        return reply.code(404).send({ error: 'MEDIA_NOT_FOUND' });
+      }
+      if (prepareError.code === '23503') {
+        return reply.code(409).send({
+          error: 'MEDIA_IN_USE',
+          message: 'Remove this media assignment from all devices before deleting the file.'
+        });
+      }
+      request.log.error({ err: prepareError }, 'Media deletion preparation failed');
+      return reply.code(500).send({ error: 'MEDIA_DELETE_PREPARATION_FAILED' });
+    }
+
+    const { error: storageError } = await supabaseAdmin.storage
+      .from('tv-media')
+      .remove([storagePath]);
+
+    if (storageError) {
+      request.log.error({ err: storageError, storagePath }, 'Media Storage deletion failed');
+      return reply.code(502).send({
+        error: 'MEDIA_STORAGE_DELETE_FAILED',
+        message: 'The media was marked unavailable. Retry deletion to finish cleanup.'
+      });
+    }
+
+    const { data, error: deleteError } = await supabaseAdmin
+      .from('media_assets')
+      .delete()
+      .eq('id', media.data)
+      .eq('venue_id', venue.data)
+      .eq('status', 'failed')
+      .select('id')
+      .maybeSingle();
+
+    if (deleteError || !data) {
+      request.log.error({ err: deleteError }, 'Media metadata deletion failed');
+      return reply.code(500).send({
+        error: 'MEDIA_METADATA_DELETE_FAILED',
+        message: 'The Storage object was removed; retry the deletion to remove its metadata.'
+      });
+    }
+
+    return reply.code(204).send();
+  });
+
 }
