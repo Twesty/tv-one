@@ -101,6 +101,8 @@ export class AppComponent {
       this.selectedVenueId.set('');
       this.devices.set([]);
       this.media.set([]);
+      this.selectedDeviceIds.set([]);
+      this.selectedMediaId = '';
       this.notice.set('Заведение деактивировано.');
     });
   }
