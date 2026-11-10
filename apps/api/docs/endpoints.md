@@ -24,6 +24,7 @@ The API validates the token with Supabase Auth and checks `admin_profiles.role =
 
 - `GET /api/admin/venues/:venueId/media`
 - `POST /api/admin/venues/:venueId/media` — multipart form with one `file` field.
+- `DELETE /api/admin/venues/:venueId/media/:mediaId` — deletes an unassigned asset and its private Storage object; assigned media returns `409 MEDIA_IN_USE`.
 
 Uploads are limited to 50 MiB. The API detects the file format from its binary signature rather than trusting the browser-supplied MIME type. Supported formats: JPEG, PNG, WebP, GIF, MP4, WebM and MOV.
 
