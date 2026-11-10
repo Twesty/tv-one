@@ -28,7 +28,7 @@ The root URL redirects to the admin application.
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `PUBLIC_API_URL` — the service's HTTPS origin, without a trailing slash
    - `CORS_ALLOWED_ORIGINS` — comma-separated origins allowed to call the API from browsers; for the single-origin setup use the service's HTTPS origin
-4. Deploy. The build compiles both Angular applications and the API. At startup, the API writes public runtime configuration into the browser bundles using the Supabase URL, anon key, and public API origin from the Render environment.
+4. Deploy. The build runs `scripts/write-browser-config.mjs` before compiling Angular so the public runtime configuration is included in the service-worker asset hashes. It then builds both Angular applications and the API. The API serves both apps and the API routes from the same Render origin.
 5. Verify:
    - `/health/live`
    - `/health/ready`
