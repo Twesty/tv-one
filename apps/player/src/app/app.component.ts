@@ -59,6 +59,9 @@ export class AppComponent implements OnDestroy {
     window.removeEventListener('online', this.onOnline);
     window.removeEventListener('offline', this.onOffline);
     this.stopTimers();
+    this.realtime.unsubscribe();
+    const currentUrl = this.mediaUrl();
+    if (currentUrl.startsWith('blob:')) URL.revokeObjectURL(currentUrl);
   }
 
   async loadVenues(): Promise<void> {
