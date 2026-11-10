@@ -1,0 +1,46 @@
+name: API quality checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/**'
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Typecheck API
+        run: pnpm --filter @tv-one/api typecheck
+
+      - name: Build API
+        run: pnpm --filter @tv-one/api build
