@@ -68,7 +68,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     decorateReply: false,
     maxAge: '1y',
     setHeaders(response, filePath) {
-      if (filePath.endsWith('index.html') || filePath.endsWith('runtime-config.js')) {
+      if (['index.html', 'runtime-config.js', 'ngsw-worker.js', 'ngsw.json', 'safety-worker.js'].some((name) => filePath.endsWith(name))) {
         response.setHeader('Cache-Control', 'no-store');
       } else {
         response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
